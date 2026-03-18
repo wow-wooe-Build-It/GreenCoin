@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 
 @Composable
@@ -61,7 +62,7 @@ fun ChatBotSheet(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(AppColors.bg.copy(alpha = 0.98f)),
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.98f)),
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 Row(
@@ -73,12 +74,12 @@ fun ChatBotSheet(
                 ) {
                     Text(
                         "GreenBot 🌱",
-                        color = AppColors.white,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                     )
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Close", tint = AppColors.textSecondary)
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
 
@@ -106,12 +107,12 @@ fun ChatBotSheet(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .background(AppColors.border, RoundedCornerShape(20.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(20.dp))
                                         .padding(horizontal = 16.dp, vertical = 12.dp),
                                 ) {
                                     Text(
                                         "GreenBot is typing...",
-                                        color = AppColors.textSecondary,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontSize = 12.sp,
                                     )
                                 }
@@ -135,10 +136,10 @@ fun ChatBotSheet(
                     listOf("Check my coins", "View missions", "How to earn GC?").forEach { text ->
                         Text(
                             text = text,
-                            color = AppColors.accent,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 12.sp,
                             modifier = Modifier
-                                .background(AppColors.border, RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(16.dp))
                                 .clickable { viewModel.sendSuggestion(text) }
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             fontWeight = FontWeight.Medium,
@@ -157,13 +158,13 @@ fun ChatBotSheet(
                         value = inputText,
                         onValueChange = { inputText = it },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("Ask me anything...", color = AppColors.gray555) },
+                        placeholder = { Text("Ask me anything...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = AppColors.white,
-                            unfocusedTextColor = AppColors.white,
-                            focusedBorderColor = AppColors.accent,
-                            unfocusedBorderColor = AppColors.border,
-                            cursorColor = AppColors.accent,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            cursorColor = MaterialTheme.colorScheme.primary,
                         ),
                         shape = RoundedCornerShape(24.dp),
                         singleLine = true,
@@ -185,9 +186,9 @@ fun ChatBotSheet(
                         },
                         modifier = Modifier
                             .size(48.dp)
-                            .background(AppColors.accent, CircleShape),
+                            .background(MaterialTheme.colorScheme.primary, CircleShape),
                     ) {
-                        Icon(Icons.Default.Send, contentDescription = "Send", tint = AppColors.black)
+                        Icon(Icons.Default.Send, contentDescription = "Send", tint = MaterialTheme.colorScheme.onPrimary)
                     }
                 }
             }
@@ -205,14 +206,14 @@ private fun ChatBubble(message: ChatMessage) {
             modifier = Modifier
                 .padding(horizontal = 8.dp)
                 .background(
-                    if (message.isUser) AppColors.accent.copy(alpha = 0.3f) else AppColors.border,
+                    if (message.isUser) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surfaceContainer,
                     RoundedCornerShape(20.dp),
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
             Text(
                 text = message.text,
-                color = AppColors.white,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp,
             )
         }

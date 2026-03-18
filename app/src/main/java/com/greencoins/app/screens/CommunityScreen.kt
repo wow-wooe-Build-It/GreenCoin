@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
@@ -54,6 +55,11 @@ import com.greencoins.app.components.GlassCard
 import com.greencoins.app.data.AuthRepository
 import com.greencoins.app.data.VerificationRepository
 import com.greencoins.app.theme.AppColors
+import com.greencoins.app.theme.themeCardBgColor
+import com.greencoins.app.theme.themeMutedBgColor
+import com.greencoins.app.theme.themeOnSurfaceTextColor
+import com.greencoins.app.theme.themeOnSurfaceVariantTextColor
+import com.greencoins.app.theme.themePageBgColor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -131,16 +137,21 @@ fun CommunityScreen(
         }
     }
 
+    val pageBg = themePageBgColor()
+    val textColor = themeOnSurfaceTextColor()
+    val textSecondaryColor = themeOnSurfaceVariantTextColor()
+    val cardBg = themeCardBgColor()
+    val mutedBg = themeMutedBgColor()
     if (showImageSourceDialog) {
         AlertDialog(
             onDismissRequest = { showImageSourceDialog = false },
-            title = { Text("Attach image", color = AppColors.white) },
+            title = { Text("Attach image", color = textColor) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
                         onClick = { cameraLauncher.launch(null) },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = AppColors.accent),
+                        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                     ) {
                         Icon(Icons.Filled.CameraAlt, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.size(8.dp))
@@ -149,7 +160,7 @@ fun CommunityScreen(
                     OutlinedButton(
                         onClick = { galleryLauncher.launch("image/*") },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = AppColors.accent),
+                        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                     ) {
                         Icon(Icons.Filled.Image, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.size(8.dp))
@@ -159,28 +170,28 @@ fun CommunityScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showImageSourceDialog = false }) {
-                    Text("Cancel", color = AppColors.textSecondary)
+                    Text("Cancel", color = textSecondaryColor)
                 }
             },
-            containerColor = AppColors.cardBg,
+            containerColor = cardBg,
         )
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.bg)
+            .background(pageBg)
             .padding(16.dp),
     ) {
         Text(
             text = "Community Verification",
-            color = AppColors.white,
+            color = textColor,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
         )
         Text(
             text = "Verify eco actions and earn +5 GC per verification",
-            color = AppColors.textSecondary,
+            color = textSecondaryColor,
             fontSize = 12.sp,
             modifier = Modifier.padding(top = 4.dp),
         )
@@ -205,12 +216,12 @@ fun CommunityScreen(
                                 Icon(
                                     Icons.Filled.VerifiedUser,
                                     contentDescription = null,
-                                    tint = AppColors.accent,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp),
                                 )
                                 Text(
                                     sub.title,
-                                    color = AppColors.white,
+                                    color = textColor,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
                                 )
@@ -229,11 +240,11 @@ fun CommunityScreen(
                                     Icon(
                                         Icons.Filled.ThumbUp,
                                         contentDescription = "Upvote",
-                                        tint = if (userVote == "upvote") AppColors.accent else AppColors.textSecondary,
+                                        tint = if (userVote == "upvote") MaterialTheme.colorScheme.primary else AppColors.textSecondary,
                                         modifier = Modifier.size(20.dp),
                                     )
                                 }
-                                Text("${sub.upvotes}", color = AppColors.textSecondary, fontSize = 12.sp)
+                                Text("${sub.upvotes}", color = textSecondaryColor, fontSize = 12.sp)
                                 Spacer(modifier = Modifier.size(8.dp))
                                 IconButton(
                                     onClick = {
@@ -251,12 +262,12 @@ fun CommunityScreen(
                                         modifier = Modifier.size(20.dp),
                                     )
                                 }
-                                Text("${sub.downvotes}", color = AppColors.textSecondary, fontSize = 12.sp)
+                                Text("${sub.downvotes}", color = textSecondaryColor, fontSize = 12.sp)
                             }
                         }
                         Text(
                             sub.description,
-                            color = AppColors.textSecondary,
+                            color = textSecondaryColor,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(top = 8.dp),
                         )
@@ -269,12 +280,12 @@ fun CommunityScreen(
                                 Icon(
                                     Icons.Filled.Place,
                                     contentDescription = null,
-                                    tint = AppColors.textSecondary,
+                                    tint = textSecondaryColor,
                                     modifier = Modifier.size(14.dp),
                                 )
                                 Text(
                                     sub.location,
-                                    color = AppColors.textSecondary,
+                                    color = textSecondaryColor,
                                     fontSize = 11.sp,
                                 )
                             }
@@ -289,13 +300,13 @@ fun CommunityScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = 12.dp),
-                                placeholder = { Text("Reason for verification...", color = AppColors.gray555) },
+                                placeholder = { Text("Reason for verification...", color = textSecondaryColor) },
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedTextColor = AppColors.white,
-                                    unfocusedTextColor = AppColors.white,
-                                    focusedBorderColor = AppColors.accent,
-                                    unfocusedBorderColor = AppColors.border,
-                                    cursorColor = AppColors.accent,
+                                    focusedTextColor = textColor,
+                                    unfocusedTextColor = textColor,
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                    cursorColor = MaterialTheme.colorScheme.primary,
                                 ),
                                 shape = RoundedCornerShape(12.dp),
                             )
@@ -305,7 +316,7 @@ fun CommunityScreen(
                                     .fillMaxWidth()
                                     .padding(top = 8.dp),
                                 colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
-                                    contentColor = AppColors.accent,
+                                    contentColor = MaterialTheme.colorScheme.primary,
                                 ),
                             ) {
                                 Icon(Icons.Filled.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -318,7 +329,7 @@ fun CommunityScreen(
                                         .fillMaxWidth()
                                         .padding(top = 8.dp)
                                         .size(80.dp, 80.dp)
-                                        .background(AppColors.gray333, RoundedCornerShape(8.dp)),
+                                        .background(mutedBg, RoundedCornerShape(8.dp)),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     if (selectedImageUri != null) {
@@ -396,15 +407,15 @@ fun CommunityScreen(
                                         },
                                         enabled = reasonInput.isNotBlank() && (selectedImageUri != null || selectedImageBitmap != null) && !isSubmitting,
                                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                            containerColor = AppColors.accent,
-                                            contentColor = AppColors.black,
-                                            disabledContainerColor = AppColors.gray333,
-                                            disabledContentColor = AppColors.textSecondary,
+                                            containerColor = MaterialTheme.colorScheme.primary,
+                                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                                            disabledContainerColor = mutedBg,
+                                            disabledContentColor = textSecondaryColor,
                                         ),
                                     ) {
                                         if (isSubmitting) {
                                             androidx.compose.material3.CircularProgressIndicator(
-                                                color = AppColors.black,
+                                                color = MaterialTheme.colorScheme.onPrimary,
                                                 modifier = Modifier.size(20.dp),
                                             )
                                         } else {
@@ -419,7 +430,7 @@ fun CommunityScreen(
                                             selectedImageBitmap = null
                                         },
                                     ) {
-                                        Text("Cancel", color = AppColors.textSecondary, fontSize = 12.sp)
+                                        Text("Cancel", color = textSecondaryColor, fontSize = 12.sp)
                                     }
                                 }
                             }
@@ -435,19 +446,19 @@ fun CommunityScreen(
                                     },
                                     modifier = Modifier.padding(top = 8.dp),
                                 ) {
-                                    Text("Add verification", color = AppColors.accent, fontSize = 12.sp)
+                                    Text("Add verification", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                                 }
                             } else if (currentUserId != null && status == "approved") {
                                 Text(
                                     "✓ Verified by you (+5 GC)",
-                                    color = AppColors.accent,
+                                    color = MaterialTheme.colorScheme.primary,
                                     fontSize = 12.sp,
                                     modifier = Modifier.padding(top = 8.dp),
                                 )
                             } else if (currentUserId != null && status == "pending") {
                                 Text(
                                     "Verification submitted — Pending approval",
-                                    color = AppColors.textSecondary,
+                                    color = textSecondaryColor,
                                     fontSize = 12.sp,
                                     modifier = Modifier.padding(top = 8.dp),
                                 )

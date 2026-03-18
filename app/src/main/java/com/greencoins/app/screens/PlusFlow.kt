@@ -60,6 +60,7 @@ import com.greencoins.app.components.GlassCard
 import com.greencoins.app.data.AuthRepository
 import com.greencoins.app.data.Mission
 import com.greencoins.app.data.MissionRepository
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import com.greencoins.app.ui.toImageVector
 import kotlinx.coroutines.delay
@@ -131,11 +132,11 @@ private fun PlusSelectionStep(missions: List<Mission>, onSelectMission: (String)
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onCancel) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AppColors.textSecondary)
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text("Select Mission", color = AppColors.white, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+            Text("Select Mission", color = MaterialTheme.colorScheme.onBackground, fontSize = 30.sp, fontWeight = FontWeight.Bold)
             IconButton(onClick = onCancel) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = AppColors.textSecondary, modifier = Modifier.size(24.dp).graphicsLayer { rotationZ = 45f })
+                Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(24.dp).graphicsLayer { rotationZ = 45f })
             }
         }
         Spacer(modifier = Modifier.height(40.dp))
@@ -159,17 +160,17 @@ private fun PlusSelectionStep(missions: List<Mission>, onSelectMission: (String)
                                 Box(
                                     modifier = Modifier
                                         .size(48.dp)
-                                        .background(AppColors.border)
+                                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                                         .padding(12.dp),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    Icon(m.icon.toImageVector(), contentDescription = null, tint = AppColors.accent, modifier = Modifier.size(24.dp))
+                                    Icon(m.icon.toImageVector(), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                                 }
                                 Spacer(modifier = Modifier.height(16.dp))
-                                Text(m.title, color = AppColors.white, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                                Text(m.description ?: "", color = AppColors.textSecondary, fontSize = 12.sp)
+                                Text(m.title, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Text(m.description ?: "", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text("+${m.gcReward} COINS", color = AppColors.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text("+${m.gcReward} COINS", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -193,18 +194,18 @@ private fun PlusBriefStep(mission: Mission, onNext: () -> Unit, onCancel: () -> 
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onCancel) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AppColors.textSecondary)
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = onCancel) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = AppColors.textSecondary, modifier = Modifier.size(24.dp).graphicsLayer { rotationZ = 45f })
+                Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(24.dp).graphicsLayer { rotationZ = 45f })
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
-        Text("MISSION BRIEFING", color = AppColors.accent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text("MISSION BRIEFING", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             "Mission: ${mission.title}",
-            color = AppColors.white,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
             lineHeight = 44.sp 
@@ -216,21 +217,21 @@ private fun PlusBriefStep(mission: Mission, onNext: () -> Unit, onCancel: () -> 
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .background(AppColors.accent.copy(alpha = 0.05f), CircleShape)
-                        .border(1.dp, AppColors.accent, CircleShape),
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("${index + 1}", color = AppColors.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text("${index + 1}", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.size(24.dp))
-                Text(text, color = AppColors.white, fontSize = 18.sp, modifier = Modifier.weight(1f))
+                Text(text, color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, modifier = Modifier.weight(1f))
             }
         }
         Spacer(modifier = Modifier.weight(1f))
         Button(
             onClick = onNext,
             modifier = Modifier.fillMaxWidth().height(64.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AppColors.accent, contentColor = AppColors.black),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
             shape = RoundedCornerShape(24.dp),
         ) {
             Text("Start Mission", fontWeight = FontWeight.Bold)
@@ -245,8 +246,8 @@ private fun MissionReminderCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AppColors.border, RoundedCornerShape(24.dp))
-            .border(1.dp, AppColors.accent.copy(alpha = 0.6f), RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(24.dp))
+            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), RoundedCornerShape(24.dp))
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -257,14 +258,14 @@ private fun MissionReminderCard() {
             Box(
                 modifier = Modifier
                     .size(32.dp)
-                    .background(AppColors.accent.copy(alpha = 0.15f), CircleShape)
-                    .border(1.dp, AppColors.accent, CircleShape),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape)
+                    .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = missionIconPlaceholder().toImageVector(),
                     contentDescription = "Mission",
-                    tint = AppColors.accent,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp),
                 )
             }
@@ -277,7 +278,7 @@ private fun MissionReminderCard() {
                 )
                 Text(
                     text = "Plant a Native Tree",
-                    color = AppColors.white,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -298,7 +299,7 @@ private fun MissionReminderCard() {
                 )
                 Text(
                     text = "+250 GreenCoins",
-                    color = AppColors.accent,
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -382,7 +383,7 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
             IconButton(onClick = onCancel, enabled = !isSubmitting) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AppColors.textSecondary)
             }
-            Text("Proof of Impact", color = AppColors.white, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("Proof of Impact", color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             IconButton(onClick = onCancel, enabled = !isSubmitting) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = AppColors.textSecondary, modifier = Modifier.size(24.dp).graphicsLayer { rotationZ = 45f })
             }
@@ -401,8 +402,8 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
                 modifier = Modifier
                     .weight(1f)
                     .aspectRatio(1f)
-                    .background(AppColors.accent.copy(alpha = 0.05f), RoundedCornerShape(32.dp))
-                    .border(2.dp, AppColors.accent.copy(alpha = 0.5f), RoundedCornerShape(32.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), RoundedCornerShape(32.dp))
+                    .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), RoundedCornerShape(32.dp))
                     .clickable(enabled = !isSubmitting) {
                         pendingImageSlot = true
                         mediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -418,9 +419,9 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
                     )
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = null, tint = AppColors.accent, modifier = Modifier.size(24.dp))
+                        Icon(Icons.Default.CameraAlt, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Before", color = AppColors.accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text("Before", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -430,8 +431,8 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
                 modifier = Modifier
                     .weight(1f)
                     .aspectRatio(1f)
-                    .background(AppColors.accent.copy(alpha = 0.05f), RoundedCornerShape(32.dp))
-                    .border(2.dp, AppColors.accent.copy(alpha = 0.5f), RoundedCornerShape(32.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), RoundedCornerShape(32.dp))
+                    .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), RoundedCornerShape(32.dp))
                     .clickable(enabled = !isSubmitting) {
                         pendingImageSlot = false
                         mediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -447,9 +448,9 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
                     )
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = null, tint = AppColors.accent, modifier = Modifier.size(24.dp))
+                        Icon(Icons.Default.CameraAlt, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("After Image", color = AppColors.accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text("After Image", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -467,11 +468,11 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
                 .height(128.dp),
             placeholder = { Text("Describe what you did (optional)", color = AppColors.gray555) },
             colors = TextFieldDefaults.colors(
-                focusedTextColor = AppColors.white,
-                unfocusedTextColor = AppColors.white,
-                focusedContainerColor = AppColors.border,
-                unfocusedContainerColor = AppColors.border,
-                focusedIndicatorColor = AppColors.accent.copy(alpha = 0.5f),
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                 unfocusedIndicatorColor = AppColors.gray333,
             ),
             shape = RoundedCornerShape(24.dp),
@@ -543,12 +544,12 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
                 }
             },
             modifier = Modifier.fillMaxWidth().height(64.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AppColors.accent, contentColor = AppColors.black),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
             shape = RoundedCornerShape(24.dp),
             enabled = !isSubmitting && beforeImageUri != null && afterImageUri != null
         ) {
             if (isSubmitting) {
-                CircularProgressIndicator(color = AppColors.black, modifier = Modifier.size(24.dp))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
             } else {
                  Text("Submit for Verification", fontWeight = FontWeight.Bold)
             }
@@ -584,13 +585,13 @@ private fun PlusSuccessStep(mission: Mission, onCancel: () -> Unit, onMissionSub
         Box(
             modifier = Modifier
                 .size(128.dp)
-                .background(AppColors.accent, CircleShape),
+                .background(MaterialTheme.colorScheme.primary, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(64.dp), tint = AppColors.black)
+            Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onPrimary)
         }
         Spacer(modifier = Modifier.height(40.dp))
-        Text("Request Sent!", color = AppColors.white, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+        Text("Request Sent!", color = MaterialTheme.colorScheme.onBackground, fontSize = 30.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             "Our AI is verifying your mission proof. You'll receive coins once approved (est. 15 mins).",
@@ -610,15 +611,15 @@ private fun PlusSuccessStep(mission: Mission, onCancel: () -> Unit, onMissionSub
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .background(AppColors.border)
+                            .background(MaterialTheme.colorScheme.surfaceContainer)
                             .padding(8.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(mission.icon.toImageVector(), contentDescription = null, tint = AppColors.accent, modifier = Modifier.size(24.dp))
+                        Icon(mission.icon.toImageVector(), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
                     }
                     Spacer(modifier = Modifier.size(12.dp))
                     Column {
-                        Text(mission.title, color = AppColors.white, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text(mission.title, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         Text("Just now", color = AppColors.textSecondary, fontSize = 10.sp)
                     }
                 }
@@ -636,7 +637,7 @@ private fun PlusSuccessStep(mission: Mission, onCancel: () -> Unit, onMissionSub
         Button(
             onClick = onCancel,
             modifier = Modifier.fillMaxWidth().height(64.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AppColors.white, contentColor = AppColors.black),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface, contentColor = MaterialTheme.colorScheme.onSurface),
             shape = RoundedCornerShape(24.dp),
         ) {
             Text("Back to Dashboard", fontWeight = FontWeight.Bold)

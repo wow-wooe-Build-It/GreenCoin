@@ -55,8 +55,14 @@ import com.greencoins.app.data.ChallengeDetailRepository
 import com.greencoins.app.data.ChallengeRepository
 import com.greencoins.app.data.Mission
 import com.greencoins.app.data.MissionRepository
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import com.greencoins.app.theme.GreenCoinsTheme
+import com.greencoins.app.theme.themeCardBgColor
+import com.greencoins.app.theme.themeIconBgColor
+import com.greencoins.app.theme.themeMutedBgColor
+import com.greencoins.app.theme.themeOnSurfaceTextColor
+import com.greencoins.app.theme.themeOnSurfaceVariantTextColor
 import com.greencoins.app.ui.toImageVector
 
 import com.greencoins.app.data.UserRepository
@@ -88,6 +94,9 @@ fun HomeScreen(
         }
     }
 
+    val textColor = themeOnSurfaceTextColor()
+    val textSecondaryColor = themeOnSurfaceVariantTextColor()
+    val iconBg = themeIconBgColor()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -109,13 +118,13 @@ fun HomeScreen(
         ) {
             Text(
                 text = "Daily Missions",
-                color = AppColors.white,
+                color = textColor,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
             )
             Text(
                 text = "NEW REFRESH IN 4H",
-                color = AppColors.accent,
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 12.sp,
             )
         }
@@ -133,25 +142,25 @@ fun HomeScreen(
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .background(AppColors.border)
+                                .background(iconBg)
                                 .padding(8.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 imageVector = m.icon.toImageVector(),
                                 contentDescription = null,
-                                tint = AppColors.accent,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp),
                             )
                         }
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text(m.title, color = AppColors.white, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text(m.description ?: "", color = AppColors.textSecondary, fontSize = 10.sp)
+                        Text(m.title, color = textColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text(m.description ?: "", color = textSecondaryColor, fontSize = 10.sp)
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("+${m.gcReward}", color = AppColors.accent, fontSize = 10.sp)
+                            Text("+${m.gcReward}", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp)
                             Spacer(modifier = Modifier.size(4.dp))
-                            Box(modifier = Modifier.size(4.dp).background(AppColors.accent, CircleShape))
+                            Box(modifier = Modifier.size(4.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
                         }
                     }
                 }
@@ -171,25 +180,25 @@ fun HomeScreen(
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .background(AppColors.border)
+                                .background(iconBg)
                                 .padding(8.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 imageVector = m.icon.toImageVector(),
                                 contentDescription = null,
-                                tint = AppColors.accent,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp),
                             )
                         }
                         Spacer(modifier = Modifier.height(12.dp))
-                        Text(m.title, color = AppColors.white, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text(m.description ?: "", color = AppColors.textSecondary, fontSize = 10.sp)
+                        Text(m.title, color = textColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text(m.description ?: "", color = textSecondaryColor, fontSize = 10.sp)
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("+${m.gcReward}", color = AppColors.accent, fontSize = 10.sp)
+                            Text("+${m.gcReward}", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp)
                             Spacer(modifier = Modifier.size(4.dp))
-                            Box(modifier = Modifier.size(4.dp).background(AppColors.accent, CircleShape))
+                            Box(modifier = Modifier.size(4.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
                         }
                     }
                 }
@@ -198,7 +207,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "Featured Missions",
-            color = AppColors.white,
+            color = textColor,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -217,34 +226,34 @@ fun HomeScreen(
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(AppColors.border)
+                        .background(iconBg)
                         .padding(8.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Filled.VerifiedUser,
                         contentDescription = null,
-                        tint = AppColors.accent,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp),
                     )
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Community Verification",
-                        color = AppColors.white,
+                        color = textColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                     )
                     Text(
                         "Verify eco actions in your area and earn GC",
-                        color = AppColors.textSecondary,
+                        color = textSecondaryColor,
                         fontSize = 10.sp,
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("+5 GC", color = AppColors.accent, fontSize = 10.sp)
+                        Text("+5 GC", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp)
                         Spacer(modifier = Modifier.size(4.dp))
-                        Box(modifier = Modifier.size(4.dp).background(AppColors.accent, CircleShape))
+                        Box(modifier = Modifier.size(4.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
                     }
                 }
             }
@@ -252,7 +261,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "Active Challenges",
-            color = AppColors.white,
+            color = textColor,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
         )
@@ -277,10 +286,10 @@ fun HomeScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(AppColors.border),
+                                .background(iconBg),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(c.title, color = AppColors.white)
+                            Text(c.title, color = textColor)
                         }
                     } else {
                         ImageWithFallback(
@@ -313,23 +322,23 @@ fun HomeScreen(
                         Column {
                             Box(
                                 modifier = Modifier
-                                    .background(AppColors.accent, androidx.compose.foundation.shape.RoundedCornerShape(9999.dp))
+                                    .background(MaterialTheme.colorScheme.primary, androidx.compose.foundation.shape.RoundedCornerShape(9999.dp))
                                     .padding(horizontal = 8.dp, vertical = 2.dp),
                             ) {
                                 Text(
                                     text = "WIN ${c.rewardGc} COINS",
-                                    color = AppColors.black,
+                                    color = MaterialTheme.colorScheme.onPrimary,
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                 )
                             }
-                            Text(c.title, color = AppColors.white, fontWeight = FontWeight.Bold)
+                            Text(c.title, color = textColor, fontWeight = FontWeight.Bold)
                         }
                         OutlinedButton(
                             onClick = { onChallengeClick(ChallengeDetailRepository.toDetail(c)) },
                             modifier = Modifier.height(32.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.white),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.white.copy(alpha = 0.2f)),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, textColor.copy(alpha = 0.2f)),
                         ) {
                             Text("Join", fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
@@ -347,6 +356,11 @@ fun StreakProgressCard(
     missionsCompleted: Int = 0,
     weeklyProgress: List<Boolean> = listOf(false, false, false, false, false, false, false)
 ) {
+    val cardBg = themeCardBgColor()
+    val textColor = themeOnSurfaceTextColor()
+    val textSecondaryColor = themeOnSurfaceVariantTextColor()
+    val mutedBg = themeMutedBgColor()
+    val iconBg = themeIconBgColor()
     val missionsRequiredForNextLevel = 20
     val levelTitles = mapOf(
         1 to "Seed",
@@ -374,7 +388,7 @@ fun StreakProgressCard(
         modifier = Modifier
             .fillMaxWidth()
             .shadow(24.dp, RoundedCornerShape(24.dp), clip = false)
-            .background(Color(0xFF111111), RoundedCornerShape(24.dp))
+            .background(cardBg, RoundedCornerShape(24.dp))
             .padding(20.dp),
     ) {
         Row(
@@ -391,7 +405,7 @@ fun StreakProgressCard(
                         .size(36.dp)
                         .background(
                             Brush.radialGradient(
-                                colors = listOf(AppColors.accent, AppColors.accent.copy(alpha = 0.1f)),
+                                colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
                                 center = androidx.compose.ui.geometry.Offset.Zero,
                                 radius = 80f,
                             ),
@@ -409,13 +423,13 @@ fun StreakProgressCard(
                 Column {
                     Text(
                         text = "STREAK",
-                        color = AppColors.textSecondary,
+                        color = textSecondaryColor,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
                     Text(
                         text = "$streakDays DAYS",
-                        color = AppColors.white,
+                        color = textColor,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -424,7 +438,7 @@ fun StreakProgressCard(
             Icon(
                 imageVector = Icons.Filled.Whatshot,
                 contentDescription = "Activity",
-                tint = AppColors.textSecondary,
+                tint = textSecondaryColor,
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -454,7 +468,7 @@ fun StreakProgressCard(
                             Box(
                                 modifier = Modifier
                                     .size(24.dp)
-                                    .background(AppColors.accent, CircleShape),
+                                    .background(MaterialTheme.colorScheme.primary, CircleShape),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
@@ -473,7 +487,7 @@ fun StreakProgressCard(
                                     .background(Color.Transparent, CircleShape)
                                     .border(
                                         width = 2.dp,
-                                        color = AppColors.accent,
+                                        color = MaterialTheme.colorScheme.primary,
                                         shape = CircleShape,
                                     ),
                             )
@@ -483,14 +497,14 @@ fun StreakProgressCard(
                             Box(
                                 modifier = Modifier
                                     .size(24.dp)
-                                    .background(AppColors.gray333, CircleShape),
+                                    .background(mutedBg, CircleShape),
                             )
                         }
                     }
 
                     Text(
                         text = label,
-                        color = AppColors.textSecondary,
+                        color = textSecondaryColor,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -506,21 +520,21 @@ fun StreakProgressCard(
         ) {
             Text(
                 text = "LEVEL $userLevel",
-                color = AppColors.accent,
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
             )
 
             Text(
                 text = levelTitles[userLevel] ?: "Eco Hero",
-                color = AppColors.white,
+                color = textColor,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
             )
 
             Text(
                 text = "$missionsCompleted / $missionsRequiredForNextLevel missions",
-                color = AppColors.textSecondary,
+                color = textSecondaryColor,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
             )
@@ -532,7 +546,7 @@ fun StreakProgressCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(10.dp)
-                .background(AppColors.border, RoundedCornerShape(9999.dp)),
+                .background(iconBg, RoundedCornerShape(9999.dp)),
             contentAlignment = Alignment.CenterStart,
         ) {
             Box(
@@ -543,8 +557,8 @@ fun StreakProgressCard(
                     .background(
                         Brush.horizontalGradient(
                             colors = listOf(
-                                AppColors.accent,
-                                AppColors.accent.copy(alpha = 0.8f),
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                             ),
                         ),
                         RoundedCornerShape(9999.dp),

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.greencoins.app.data.UserProfile
 import com.greencoins.app.data.UserRepository
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -88,9 +89,9 @@ fun PersonalInformationScreen(
                     focusedTextColor = AppColors.white,
                     unfocusedTextColor = AppColors.white,
                     disabledTextColor = AppColors.textSecondary,
-                    focusedBorderColor = AppColors.accent,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = AppColors.border,
-                    cursorColor = AppColors.accent,
+                    cursorColor = MaterialTheme.colorScheme.primary,
                 ),
                 shape = RoundedCornerShape(16.dp),
             )
@@ -123,9 +124,9 @@ fun PersonalInformationScreen(
                     focusedTextColor = AppColors.white,
                     unfocusedTextColor = AppColors.white,
                     disabledTextColor = AppColors.textSecondary,
-                    focusedBorderColor = AppColors.accent,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = AppColors.border,
-                    cursorColor = AppColors.accent,
+                    cursorColor = MaterialTheme.colorScheme.primary,
                 ),
                 shape = RoundedCornerShape(16.dp),
             )
@@ -141,9 +142,9 @@ fun PersonalInformationScreen(
                     focusedTextColor = AppColors.white,
                     unfocusedTextColor = AppColors.white,
                     disabledTextColor = AppColors.textSecondary,
-                    focusedBorderColor = AppColors.accent,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = AppColors.border,
-                    cursorColor = AppColors.accent,
+                    cursorColor = MaterialTheme.colorScheme.primary,
                 ),
                 shape = RoundedCornerShape(16.dp),
             )
@@ -161,7 +162,7 @@ fun PersonalInformationScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.accent, contentColor = AppColors.black),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = AppColors.black),
                     shape = RoundedCornerShape(16.dp),
                 ) {
                     Text(if (isSaving) "Saving..." else "Save", fontWeight = FontWeight.Bold)
@@ -170,7 +171,7 @@ fun PersonalInformationScreen(
                 Button(
                     onClick = { isEditing = true },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.accent, contentColor = AppColors.black),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = AppColors.black),
                     shape = RoundedCornerShape(16.dp),
                 ) {
                     Text("Edit", fontWeight = FontWeight.Bold)

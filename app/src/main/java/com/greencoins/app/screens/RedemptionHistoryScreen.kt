@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.greencoins.app.components.GlassCard
 import com.greencoins.app.data.Transaction
 import com.greencoins.app.data.TransactionRepository
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 
 private fun formatTransactionDate(createdAt: String?): String {
@@ -98,7 +99,7 @@ fun RedemptionHistoryScreen(
                     val amountStr = if (isCredit) "+${tx.amount}" else "${tx.amount}"
                     val desc = tx.description ?: formatTransactionType(tx.type)
                     val dateStr = formatTransactionDate(tx.createdAt)
-                    val amountColor = if (isCredit) AppColors.accent else AppColors.redLogout
+                    val amountColor = if (isCredit) MaterialTheme.colorScheme.primary else AppColors.redLogout
 
                     GlassCard(modifier = Modifier.padding(vertical = 6.dp)) {
                         Column(

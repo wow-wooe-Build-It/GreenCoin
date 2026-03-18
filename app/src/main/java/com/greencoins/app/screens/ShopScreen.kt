@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.greencoins.app.components.ImageWithFallback
 
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.data.Reward
 import com.greencoins.app.theme.AppColors
 import com.greencoins.app.theme.GreenCoinsTheme
@@ -83,7 +84,7 @@ fun ShopScreen(
             Spacer(modifier = Modifier.height(32.dp))
         }
         item(span = { GridItemSpan(2) }) {
-            Text("Popular Rewards", color = AppColors.white, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text("Popular Rewards", color = MaterialTheme.colorScheme.onBackground, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
         item(span = { GridItemSpan(2) }) {
             Spacer(modifier = Modifier.height(8.dp))
@@ -106,35 +107,36 @@ private fun mapRewardToCategory(reward: Reward): String = when (reward.category)
 
 @Composable
 private fun FeaturedRewardCard(onRedeemClick: () -> Unit) {
+    val colorScheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AppColors.border, RoundedCornerShape(32.dp)),
+            .background(colorScheme.surfaceContainer, RoundedCornerShape(32.dp)),
     ) {
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(16.dp)
                 .size(48.dp)
-                .background(AppColors.accent.copy(alpha = 0.1f), RoundedCornerShape(24.dp)),
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), RoundedCornerShape(24.dp)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Default.Star, contentDescription = null, tint = AppColors.accent, modifier = Modifier.size(24.dp))
+            Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
         }
         Column(modifier = Modifier.padding(24.dp)) {
-            Text("FEATURED REWARD", color = AppColors.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Text("Travel Saver Pass", color = AppColors.white, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("FEATURED REWARD", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("Travel Saver Pass", color = colorScheme.onSurface, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 "Redeem your coins to unlock\nup to ₹100 off on eco-friendly travel.",
-                color = AppColors.textSecondary,
+                color = colorScheme.onSurfaceVariant,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(end = 80.dp),
             )
             Spacer(modifier = Modifier.height(24.dp))
             Button(
                 onClick = onRedeemClick,
-                colors = ButtonDefaults.buttonColors(containerColor = AppColors.accent, contentColor = AppColors.black),
+                colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary, contentColor = colorScheme.onPrimary),
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Text("REDEEM NOW", fontWeight = FontWeight.Bold)
@@ -148,6 +150,7 @@ private fun PopularRewardCard(
     reward: Reward,
     onClick: () -> Unit,
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Column(
         modifier = Modifier.clickable(onClick = onClick),
     ) {
@@ -155,7 +158,7 @@ private fun PopularRewardCard(
             modifier = Modifier
                 .aspectRatio(4f / 5f)
                 .fillMaxWidth()
-                .background(AppColors.border, RoundedCornerShape(28.dp)),
+                .background(colorScheme.surfaceContainer, RoundedCornerShape(28.dp)),
         ) {
             ImageWithFallback(
                 src = reward.imageUrl ?: "",
@@ -168,19 +171,19 @@ private fun PopularRewardCard(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(12.dp)
-                        .background(AppColors.accent, RoundedCornerShape(9999.dp))
+                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(9999.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp),
                 ) {
-                    Text(discount, color = AppColors.black, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    Text(discount, color = colorScheme.onPrimary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
         Spacer(modifier = Modifier.height(12.dp))
-        Text(reward.title, color = AppColors.white, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
+        Text(reward.title, color = colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(12.dp).background(AppColors.accent, RoundedCornerShape(6.dp)))
+            Box(modifier = Modifier.size(12.dp).background(MaterialTheme.colorScheme.primary, RoundedCornerShape(6.dp)))
             Spacer(modifier = Modifier.size(6.dp))
-            Text("${reward.gcCost}", color = AppColors.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("${reward.gcCost}", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -190,11 +193,12 @@ private fun CategoryCard(
     category: String,
     onClick: () -> Unit,
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp)
-            .background(AppColors.border, RoundedCornerShape(24.dp))
+            .background(colorScheme.surfaceContainer, RoundedCornerShape(24.dp))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -205,20 +209,20 @@ private fun CategoryCard(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .background(AppColors.accent.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     Icons.Default.ShoppingBag,
                     contentDescription = null,
-                    tint = AppColors.accent,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp),
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = category,
-                color = AppColors.white,
+                color = colorScheme.onSurface,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,

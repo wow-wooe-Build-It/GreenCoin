@@ -48,6 +48,7 @@ import com.greencoins.app.screens.ProfileScreen
 import com.greencoins.app.screens.ShopScreen
 import com.greencoins.app.screens.ShopViewModel
 import com.greencoins.app.screens.UserViewModel
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import androidx.compose.runtime.collectAsState
 import com.greencoins.app.data.AuthRepository
@@ -141,11 +142,11 @@ fun GreenCoinsApp() {
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(AppColors.bg)) {
+    Box(modifier = Modifier.fillMaxSize().background(androidx.compose.material3.MaterialTheme.colorScheme.background)) {
         when {
             isLoggedIn == null -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = AppColors.accent)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
             isLoggedIn == false -> {
@@ -177,7 +178,7 @@ fun GreenCoinsApp() {
                         horizontalArrangement = Arrangement.Start,
                     ) {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AppColors.textSecondary)
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }

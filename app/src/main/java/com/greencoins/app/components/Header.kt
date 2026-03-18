@@ -1,5 +1,6 @@
 package com.greencoins.app.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import com.greencoins.app.ui.NavIcons
 
@@ -35,12 +37,13 @@ fun Header(
     coins: Int,
     onHelp: () -> Unit,
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(64.dp)
-            .background(AppColors.bg)
-            .border(1.dp, AppColors.border),
+            .background(colorScheme.surface)
+            .border(1.dp, colorScheme.outline),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -52,8 +55,8 @@ fun Header(
             Box(
                 modifier = Modifier
                     .size(32.dp)
-                    .shadow(15.dp, CircleShape)
-                    .background(AppColors.accent, CircleShape),
+                    .then(if (!isSystemInDarkTheme()) Modifier.shadow(8.dp, CircleShape, ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)) else Modifier.shadow(15.dp, CircleShape))
+                    .background(MaterialTheme.colorScheme.primary, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 androidx.compose.foundation.Image(
@@ -64,7 +67,7 @@ fun Header(
             }
             Text(
                 text = "GreenCoins",
-                color = AppColors.white,
+                color = colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
             )
@@ -76,8 +79,8 @@ fun Header(
         ) {
             Row(
                 modifier = Modifier
-                    .background(AppColors.border, RoundedCornerShape(9999.dp))
-                    .border(1.dp, AppColors.gray333, RoundedCornerShape(9999.dp))
+                    .background(colorScheme.surfaceContainerHighest, RoundedCornerShape(9999.dp))
+                    .border(1.dp, colorScheme.outline, RoundedCornerShape(9999.dp))
                     .padding(horizontal = 12.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -85,11 +88,11 @@ fun Header(
                 Box(
                     modifier = Modifier
                         .size(16.dp)
-                        .background(AppColors.accent, CircleShape),
+                        .background(MaterialTheme.colorScheme.primary, CircleShape),
                 ) {}
                 Text(
                     text = "%,d".format(coins),
-                    color = AppColors.accent,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                 )
@@ -101,7 +104,7 @@ fun Header(
                 Icon(
                     imageVector = com.greencoins.app.ui.NavIcons.Help,
                     contentDescription = "Help",
-                    tint = AppColors.textSecondary,
+                    tint = colorScheme.onSurfaceVariant,
                 )
             }
         }

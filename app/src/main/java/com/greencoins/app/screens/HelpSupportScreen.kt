@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.greencoins.app.components.GlassCard
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 
 private data class FaqItem(val question: String, val answer: String)
@@ -76,7 +77,7 @@ fun HelpSupportScreen(onBack: () -> Unit) {
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp),
         ) {
-            Text("FAQ", color = AppColors.accent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("FAQ", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             FAQ_ITEMS.forEachIndexed { index, item ->
                 val isExpanded = expandedIndex == index
@@ -92,7 +93,7 @@ fun HelpSupportScreen(onBack: () -> Unit) {
                         ) {
                             Text(
                                 item.question,
-                                color = AppColors.accent,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
                                 modifier = Modifier.weight(1f),
@@ -117,13 +118,13 @@ fun HelpSupportScreen(onBack: () -> Unit) {
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            Text("Contact Support", color = AppColors.accent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("Contact Support", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             GlassCard(modifier = Modifier.padding(vertical = 6.dp)) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         "support@greencoins.app",
-                        color = AppColors.accent,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 13.sp,
                         modifier = Modifier
                             .clickable {
@@ -136,7 +137,7 @@ fun HelpSupportScreen(onBack: () -> Unit) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         "team@greencoins.app",
-                        color = AppColors.accent,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 13.sp,
                         modifier = Modifier
                             .clickable {
@@ -150,7 +151,7 @@ fun HelpSupportScreen(onBack: () -> Unit) {
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            Text("About GreenCoins", color = AppColors.accent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("About GreenCoins", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             GlassCard(modifier = Modifier.padding(vertical = 6.dp)) {
                 Column(modifier = Modifier.padding(16.dp)) {

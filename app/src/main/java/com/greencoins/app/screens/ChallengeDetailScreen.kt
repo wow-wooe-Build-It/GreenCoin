@@ -48,6 +48,7 @@ import com.greencoins.app.data.ChallengeDetailData
 import com.greencoins.app.data.ChallengeDetailRepository
 import com.greencoins.app.data.LeaderboardEntry
 import com.greencoins.app.data.LeaderboardRepository
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 
 @Composable
@@ -58,6 +59,7 @@ fun ChallengeDetailScreen(
     onJoin: () -> Unit = {},
 ) {
     var showJoinDialog by remember { mutableStateOf(false) }
+    val colorScheme = MaterialTheme.colorScheme
 
     var baseLeaderboard by remember { mutableStateOf<List<LeaderboardEntry>>(emptyList()) }
     androidx.compose.runtime.LaunchedEffect(data.id) {
@@ -94,17 +96,17 @@ fun ChallengeDetailScreen(
                 showJoinDialog = false
                 onJoin()
             },
-            title = { Text("Success", color = AppColors.white, fontWeight = FontWeight.Bold) },
-            text = { Text("You have successfully joined the challenge", color = AppColors.textSecondary) },
+            title = { Text("Success", color = colorScheme.onSurface, fontWeight = FontWeight.Bold) },
+            text = { Text("You have successfully joined the challenge", color = colorScheme.onSurfaceVariant) },
             confirmButton = {
                 TextButton(onClick = {
                     showJoinDialog = false
                     onJoin()
                 }) {
-                    Text("OK", color = AppColors.accent, fontWeight = FontWeight.Bold)
+                    Text("OK", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             },
-            containerColor = AppColors.border,
+            containerColor = colorScheme.surfaceContainer,
         )
     }
 
@@ -133,7 +135,7 @@ fun ChallengeDetailScreen(
                         androidx.compose.ui.graphics.Brush.verticalGradient(
                             listOf(
                                 androidx.compose.ui.graphics.Color.Transparent,
-                                AppColors.bg
+                                colorScheme.background
                             )
                         )
                     )
@@ -149,18 +151,18 @@ fun ChallengeDetailScreen(
                 IconButton(
                     onClick = onBack,
                     modifier = Modifier
-                        .background(AppColors.bg.copy(alpha = 0.5f), CircleShape)
+                        .background(colorScheme.surface.copy(alpha = 0.5f), CircleShape)
                         .size(40.dp)
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AppColors.white)
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colorScheme.onSurface)
                 }
                 IconButton(
                     onClick = { /* Share */ },
                     modifier = Modifier
-                        .background(AppColors.bg.copy(alpha = 0.5f), CircleShape)
+                        .background(colorScheme.surface.copy(alpha = 0.5f), CircleShape)
                         .size(40.dp)
                 ) {
-                    Icon(Icons.Default.Share, contentDescription = "Share", tint = AppColors.white)
+                    Icon(Icons.Default.Share, contentDescription = "Share", tint = colorScheme.onSurface)
                 }
             }
 
@@ -172,15 +174,15 @@ fun ChallengeDetailScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .background(AppColors.accent, RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Text("ACTIVE", color = AppColors.black, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("ACTIVE", color = colorScheme.onPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     data.title,
-                    color = AppColors.white,
+                    color = colorScheme.onSurface,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 34.sp
@@ -207,20 +209,20 @@ fun ChallengeDetailScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // Instructions
-            Text("How to Participate", color = AppColors.white, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("How to Participate", color = colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(16.dp))
             data.instructions.forEachIndexed { index, step ->
                 Row(modifier = Modifier.padding(bottom = 16.dp)) {
                     Box(
                         modifier = Modifier
                             .size(24.dp)
-                            .background(AppColors.gray333, CircleShape),
+                            .background(colorScheme.surfaceContainerHighest, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("${index + 1}", color = AppColors.white, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("${index + 1}", color = colorScheme.onSurface, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                     Spacer(modifier = Modifier.width(16.dp))
-                    Text(step, color = AppColors.textSecondary, fontSize = 14.sp, lineHeight = 20.sp)
+                    Text(step, color = colorScheme.onSurfaceVariant, fontSize = 14.sp, lineHeight = 20.sp)
                 }
             }
 
@@ -232,8 +234,8 @@ fun ChallengeDetailScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Top Agents", color = AppColors.white, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("View All", color = AppColors.accent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text("Top Agents", color = colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("View All", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -252,28 +254,28 @@ fun ChallengeDetailScreen(
                     ) {
                         Text(
                             "#${entry.rank}", 
-                            color = if (entry.rank <= 3) AppColors.accent else AppColors.textSecondary,
+                            color = if (entry.rank <= 3) colorScheme.primary else colorScheme.onSurfaceVariant,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.width(32.dp)
                         )
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
-                                .background(if (entry.isCurrentUser) AppColors.accent else AppColors.gray333, CircleShape),
+                                .background(if (entry.isCurrentUser) colorScheme.primary else colorScheme.surfaceContainerHighest, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(entry.username.take(1), color = if (entry.isCurrentUser) AppColors.black else AppColors.white, fontWeight = FontWeight.Bold)
+                            Text(entry.username.take(1), color = if (entry.isCurrentUser) colorScheme.onPrimary else colorScheme.onSurface, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             entry.username, 
-                            color = AppColors.white, 
+                            color = colorScheme.onSurface, 
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.weight(1f)
                         )
                         Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = AppColors.pendingYellow, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("${entry.coins}", color = AppColors.white, fontWeight = FontWeight.Bold)
+                        Text("${entry.coins}", color = colorScheme.onSurface, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -289,10 +291,10 @@ fun ChallengeDetailScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AppColors.accent,
-                    contentColor = AppColors.black,
-                    disabledContainerColor = AppColors.border,
-                    disabledContentColor = AppColors.textSecondary,
+                    containerColor = colorScheme.primary,
+                    contentColor = colorScheme.onPrimary,
+                    disabledContainerColor = colorScheme.surfaceContainerHighest,
+                    disabledContentColor = colorScheme.onSurfaceVariant,
                 ),
                 shape = RoundedCornerShape(16.dp),
                 enabled = !isJoined,
@@ -309,8 +311,9 @@ fun ChallengeDetailScreen(
 
 @Composable
 fun StatItem(label: String, value: String) {
+    val colorScheme = MaterialTheme.colorScheme
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, color = AppColors.white, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-        Text(label, color = AppColors.textSecondary, fontSize = 12.sp)
+        Text(value, color = colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text(label, color = colorScheme.onSurfaceVariant, fontSize = 12.sp)
     }
 }

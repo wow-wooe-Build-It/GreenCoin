@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.greencoins.app.data.AuthRepository
 import com.greencoins.app.data.Reward
 import com.greencoins.app.data.ShopRepository
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import com.greencoins.app.components.ImageWithFallback
 import androidx.compose.ui.layout.ContentScale
@@ -68,10 +69,11 @@ fun CategoryRewardsScreen(
     
     val scope = rememberCoroutineScope()
 
+    val colorScheme = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.bg),
+            .background(colorScheme.background),
     ) {
         // Top bar with back button
         Row(
@@ -84,7 +86,7 @@ fun CategoryRewardsScreen(
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = AppColors.white,
+                    tint = colorScheme.onSurface,
                 )
             }
             Text(
@@ -108,7 +110,7 @@ fun CategoryRewardsScreen(
                 Box(
                     modifier = Modifier
                         .background(
-                            color = if (isSelected) AppColors.accent else AppColors.border,
+                            color = if (isSelected) colorScheme.primary else colorScheme.surfaceContainer,
                             shape = RoundedCornerShape(9999.dp),
                         )
                         .clickable { onCategoryChange(category) }
@@ -116,7 +118,7 @@ fun CategoryRewardsScreen(
                 ) {
                     Text(
                         text = category,
-                        color = if (isSelected) AppColors.black else AppColors.textSecondary,
+                        color = if (isSelected) colorScheme.onPrimary else colorScheme.onSurfaceVariant,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -171,10 +173,11 @@ private fun RewardCard(
     canRedeem: Boolean = true,
     onRedeem: () -> Unit,
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AppColors.border, RoundedCornerShape(24.dp))
+            .background(colorScheme.surfaceContainer, RoundedCornerShape(24.dp))
             .padding(20.dp),
     ) {
         Row(
@@ -197,7 +200,7 @@ private fun RewardCard(
                 Column {
                     Text(
                         text = reward.title,
-                        color = AppColors.white,
+                        color = colorScheme.onSurface,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -206,12 +209,12 @@ private fun RewardCard(
                         Box(
                             modifier = Modifier
                                 .size(10.dp)
-                                .background(AppColors.accent, RoundedCornerShape(4.dp)),
+                                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp)),
                         )
                         Spacer(modifier = Modifier.size(6.dp))
                         Text(
                             text = "${reward.gcCost} GC",
-                            color = AppColors.accent,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                         )
@@ -219,9 +222,9 @@ private fun RewardCard(
                 }
             }
             val (btnText, btnColor) = when {
-                isRedeemed -> "Claimed" to AppColors.white
-                !canRedeem -> "Insufficient GC" to AppColors.white
-                else -> "Redeem" to AppColors.black
+                isRedeemed -> "Claimed" to colorScheme.onSurface
+                !canRedeem -> "Insufficient GC" to colorScheme.onSurface
+                else -> "Redeem" to colorScheme.onPrimary
             }
             Box(
                 modifier = Modifier
@@ -229,7 +232,7 @@ private fun RewardCard(
                         color = when {
                             isRedeemed -> AppColors.textSecondary
                             !canRedeem -> AppColors.textSecondary.copy(alpha = 0.6f)
-                            else -> AppColors.accent
+                            else -> MaterialTheme.colorScheme.primary
                         },
                         shape = RoundedCornerShape(16.dp),
                     )

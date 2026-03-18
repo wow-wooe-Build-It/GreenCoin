@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.greencoins.app.data.AuthRepository
@@ -46,7 +47,12 @@ import androidx.compose.ui.unit.sp
 import com.greencoins.app.components.GlassCard
 import com.greencoins.app.components.ImageWithFallback
 import com.greencoins.app.screens.PersonalInformationScreen
+import androidx.compose.material3.MaterialTheme
+import com.greencoins.app.data.ThemePreferences
 import com.greencoins.app.theme.AppColors
+import com.greencoins.app.theme.themeCardBgColor
+import com.greencoins.app.theme.themeOnSurfaceTextColor
+import com.greencoins.app.theme.themeOnSurfaceVariantTextColor
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 
@@ -140,7 +146,7 @@ fun ProfileScreen(
                     modifier = Modifier
                         .size(128.dp)
                         .padding(4.dp)
-                        .background(AppColors.accent, RoundedCornerShape(48.dp))
+                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(48.dp))
                         .clickable { imagePickerLauncher.launch("image/*") },
                 ) {
                     ImageWithFallback(
@@ -153,13 +159,13 @@ fun ProfileScreen(
                             .align(Alignment.BottomEnd)
                             .padding(4.dp)
                             .size(28.dp)
-                            .background(AppColors.accent, RoundedCornerShape(14.dp)),
+                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(14.dp)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             Icons.Default.CameraAlt,
                             contentDescription = "Change photo",
-                            tint = AppColors.black,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(16.dp),
                         )
                     }
@@ -167,18 +173,18 @@ fun ProfileScreen(
                 Box(
                     modifier = Modifier
                         .offset(y = (-8).dp)
-                        .background(AppColors.accent, RoundedCornerShape(9999.dp))
+                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(9999.dp))
                         .padding(horizontal = 12.dp, vertical = 4.dp),
                 ) {
-                    Text("LVL ${userProfile?.level ?: 1}", color = AppColors.black, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("LVL ${userProfile?.level ?: 1}", color = MaterialTheme.colorScheme.onPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
                 
                 val displayName = userProfile?.fullName?.takeIf { it.isNotBlank() }
                     ?: user?.userMetadata?.get("full_name")?.toString()?.replace("\"", "")
                     ?: "GreenCoin User"
-                Text(displayName, color = AppColors.white, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                Text(user?.email ?: "", color = AppColors.textSecondary, fontSize = 12.sp)
+                Text(displayName, color = themeOnSurfaceTextColor(), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text(user?.email ?: "", color = themeOnSurfaceVariantTextColor(), fontSize = 12.sp)
             }
         }
         Spacer(modifier = Modifier.height(48.dp))
@@ -188,26 +194,30 @@ fun ProfileScreen(
         ) {
             GlassCard(modifier = Modifier.weight(1f)) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Current Streak", color = AppColors.textSecondary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("Current Streak", color = themeOnSurfaceVariantTextColor(), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     Row(verticalAlignment = Alignment.Bottom) {
-                        Text("$calculatedStreak", color = AppColors.white, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text("$calculatedStreak", color = themeOnSurfaceTextColor(), fontSize = 24.sp, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.size(4.dp))
-                        Text("DAYS", color = AppColors.accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text("DAYS", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
             GlassCard(modifier = Modifier.weight(1f)) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text("Missions Completed", color = AppColors.textSecondary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("Missions Completed", color = themeOnSurfaceVariantTextColor(), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     Row(verticalAlignment = Alignment.Bottom) {
-                        Text("${userProfile?.missionsCompleted ?: 0}", color = AppColors.white, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text("${userProfile?.missionsCompleted ?: 0}", color = themeOnSurfaceTextColor(), fontSize = 24.sp, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.size(4.dp))
-                        Text("TOTAL", color = AppColors.accent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text("TOTAL", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
         Spacer(modifier = Modifier.height(40.dp))
+        val isDarkTheme by ThemePreferences.isDarkThemeState
+        val cardBg = themeCardBgColor()
+        val textColor = themeOnSurfaceTextColor()
+        val textSecondaryColor = themeOnSurfaceVariantTextColor()
         listOf(
             Triple(Icons.Default.Person, "Personal Information", { onShowPersonalInfoChange(true) }),
             Triple(Icons.Default.Star, "Impact Statistics", { onShowImpactStatisticsChange(true) }),
@@ -217,19 +227,44 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
-                    .background(AppColors.border, RoundedCornerShape(24.dp))
+                    .background(cardBg, RoundedCornerShape(24.dp))
                     .clickable { onClickAction() }
                     .padding(20.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(icon, contentDescription = null, tint = AppColors.textSecondary, modifier = Modifier.size(20.dp))
+                    Icon(icon, contentDescription = null, tint = textSecondaryColor, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.size(16.dp))
-                    Text(label, color = AppColors.white, fontWeight = FontWeight.Medium)
+                    Text(label, color = textColor, fontWeight = FontWeight.Medium)
                 }
-                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = AppColors.gray555, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.ChevronRight, contentDescription = null, tint = textSecondaryColor, modifier = Modifier.size(18.dp))
             }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(cardBg, RoundedCornerShape(24.dp))
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text("Dark Mode", color = textColor, fontWeight = FontWeight.Medium)
+            Switch(
+                checked = isDarkTheme,
+                onCheckedChange = {
+                    scope.launch {
+                        ThemePreferences.setDarkTheme(context, it)
+                    }
+                },
+                colors = androidx.compose.material3.SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    uncheckedTrackColor = themeCardBgColor(),
+                ),
+            )
         }
         Spacer(modifier = Modifier.height(16.dp))
         Row(

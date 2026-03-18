@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.greencoins.app.components.GlassCard
 import com.greencoins.app.components.ImageWithFallback
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import com.greencoins.app.ui.toImageVector
 
@@ -49,6 +50,7 @@ import com.greencoins.app.data.ChallengeDetailRepository
 @Composable
 fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
     var challenges by remember { mutableStateOf<List<Challenge>>(emptyList()) }
+    val colorScheme = MaterialTheme.colorScheme
 
     LaunchedEffect(Unit) {
         challenges = ChallengeRepository.getAllChallenges()
@@ -65,13 +67,13 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Challenges", color = AppColors.white, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("Challenges", color = colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             IconButton(onClick = {}) {
-                Icon(Icons.Default.Search, contentDescription = null, tint = AppColors.textSecondary, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Search, contentDescription = null, tint = colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
-        Text("My Active", color = AppColors.textSecondary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text("My Active", color = colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         val activeList = challenges.filter { it.isActive }
         
@@ -94,7 +96,7 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
                             Box(
                                 modifier = Modifier
                                     .size(64.dp)
-                                    .background(AppColors.border, RoundedCornerShape(16.dp)),
+                                    .background(colorScheme.surfaceContainerHighest, RoundedCornerShape(16.dp)),
                             ) {
                                 ImageWithFallback(
                                     src = c.coverImageUrl ?: "",
@@ -104,8 +106,8 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
                                 )
                             }
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(c.title, color = AppColors.white, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                Text("${c.endDate?.take(10) ?: "Active"} LEFT", color = AppColors.accent, fontSize = 10.sp)
+                                Text(c.title, color = colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text("${c.endDate?.take(10) ?: "Active"} LEFT", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp)
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
@@ -113,8 +115,8 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
-                            Text("PROGRESS", color = AppColors.textSecondary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            Text("$progress%", color = AppColors.white, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text("PROGRESS", color = colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text("$progress%", color = colorScheme.onSurface, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         LinearProgressIndicator(
@@ -122,15 +124,15 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(6.dp)
-                                .background(AppColors.gray333, RoundedCornerShape(3.dp)),
-                            color = AppColors.accent,
+                                .background(colorScheme.surfaceContainerHighest, RoundedCornerShape(3.dp)),
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
             }
         }
         Spacer(modifier = Modifier.height(40.dp))
-        Text("Featured Missions", color = AppColors.textSecondary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text("Featured Missions", color = colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(24.dp))
         activeList.drop(2).take(2).forEach { c ->
             Box(
@@ -138,7 +140,7 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
                     .fillMaxWidth()
                     .height(224.dp)
                     .padding(vertical = 12.dp)
-                    .background(AppColors.border, RoundedCornerShape(32.dp))
+                    .background(colorScheme.surfaceContainer, RoundedCornerShape(32.dp))
                     .clickable { onChallengeClick(ChallengeDetailRepository.toDetail(c)) },
             ) {
                 ImageWithFallback(
@@ -171,18 +173,18 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
                     Column {
                         Box(
                             modifier = Modifier
-                                .background(AppColors.accent, RoundedCornerShape(9999.dp))
+                                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(9999.dp))
                                 .padding(horizontal = 8.dp, vertical = 2.dp),
                         ) {
-                            Text("${c.rewardGc} GC", color = AppColors.black, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text("${c.rewardGc} GC", color = colorScheme.onPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(c.title, color = AppColors.white, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Text("0 agents joined", color = AppColors.white.copy(alpha = 0.6f), fontSize = 12.sp)
+                        Text(c.title, color = colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text("0 agents joined", color = colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
                     }
                     androidx.compose.material3.Button(
                         onClick = { onChallengeClick(ChallengeDetailRepository.toDetail(c)) },
-                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = AppColors.white, contentColor = AppColors.black),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = colorScheme.surface, contentColor = colorScheme.onSurface),
                         shape = RoundedCornerShape(12.dp),
                     ) {
                         Text("Join", fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -191,14 +193,14 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
             }
         }
         Spacer(modifier = Modifier.height(40.dp))
-        Text("Global Network", color = AppColors.textSecondary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text("Global Network", color = colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         activeList.drop(4).take(3).forEach { c ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 6.dp)
-                    .background(AppColors.border, RoundedCornerShape(24.dp))
+                    .background(colorScheme.surfaceContainer, RoundedCornerShape(24.dp))
                     .clickable { onChallengeClick(ChallengeDetailRepository.toDetail(c)) }
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -208,24 +210,24 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .background(AppColors.bg)
+                            .background(colorScheme.surfaceContainerHighest)
                             .padding(8.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             com.greencoins.app.data.MissionIcon.Leaf.toImageVector(),
                             contentDescription = null,
-                            tint = AppColors.accent,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp),
                         )
                     }
                     Spacer(modifier = Modifier.size(16.dp))
                     Column {
-                        Text(c.title, color = AppColors.white, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text("Global • ${c.description?.take(20) ?: ""}", color = AppColors.textSecondary, fontSize = 10.sp)
+                        Text(c.title, color = colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Text("Global • ${c.description?.take(20) ?: ""}", color = colorScheme.onSurfaceVariant, fontSize = 10.sp)
                     }
                 }
-                Icon(Icons.Default.ArrowForward, contentDescription = null, tint = AppColors.gray555, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.ArrowForward, contentDescription = null, tint = colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
             }
         }
     }

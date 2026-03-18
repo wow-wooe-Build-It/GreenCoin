@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.greencoins.app.components.GlassCard
 import com.greencoins.app.data.FaqRepository
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +45,7 @@ import androidx.compose.runtime.setValue
 @Composable
 fun HelpScreen(onClose: () -> Unit) {
     var faqItems by remember { mutableStateOf<List<com.greencoins.app.data.FaqItem>>(emptyList()) }
+    val colorScheme = MaterialTheme.colorScheme
 
     LaunchedEffect(Unit) {
         faqItems = FaqRepository.getFaqItems()
@@ -71,33 +73,33 @@ fun HelpScreen(onClose: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             IconButton(onClick = onClose) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AppColors.textSecondary)
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colorScheme.onSurfaceVariant)
             }
-            Text("Help & Support", color = AppColors.white, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text("Help & Support", color = colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(32.dp))
         displayItems.forEach { item ->
             GlassCard(modifier = Modifier.padding(vertical = 8.dp)) {
                 Column(modifier = Modifier.padding(24.dp)) {
-                    Text(item.question, color = AppColors.accent, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(item.question, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(item.answer, color = AppColors.textSecondary, fontSize = 12.sp)
+                    Text(item.answer, color = colorScheme.onSurfaceVariant, fontSize = 12.sp)
                 }
             }
         }
         Spacer(modifier = Modifier.height(40.dp))
         GlassCard(modifier = Modifier.padding(vertical = 8.dp)) {
             Column(modifier = Modifier.padding(24.dp)) {
-                Text("Need Help?", color = AppColors.accent, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("Need Help?", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     "If you have questions about missions, rewards, or your GreenCoins balance, our team is here to help.",
-                    color = AppColors.textSecondary,
+                    color = colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("support@greencoins.app", color = AppColors.accent.copy(alpha = 0.9f), fontSize = 12.sp)
-                Text("hello@greencoins.app", color = AppColors.accent.copy(alpha = 0.9f), fontSize = 12.sp)
+                Text("support@greencoins.app", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f), fontSize = 12.sp)
+                Text("hello@greencoins.app", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.9f), fontSize = 12.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("We usually respond within 24 hours.", color = AppColors.gray555, fontSize = 10.sp)
             }

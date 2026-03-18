@@ -29,6 +29,7 @@ import com.greencoins.app.components.ImageWithFallback
 import com.greencoins.app.data.CompletedChallengeItem
 import com.greencoins.app.data.CompletedMissionItem
 import com.greencoins.app.data.ImpactRepository
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 
 @Composable
@@ -65,7 +66,7 @@ fun ImpactStatisticsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp),
         ) {
-            Text("Completed Missions", color = AppColors.accent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("Completed Missions", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             if (missions.isEmpty()) {
                 GlassCard(modifier = Modifier.fillMaxWidth()) {
@@ -101,14 +102,14 @@ fun ImpactStatisticsScreen(
                                     )
                                 }
                             }
-                            Text("+${item.gcEarned} GC", color = AppColors.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("+${item.gcEarned} GC", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
-            Text("Completed Challenges", color = AppColors.accent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text("Completed Challenges", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             if (challenges.isEmpty()) {
                 GlassCard(modifier = Modifier.fillMaxWidth()) {
@@ -134,7 +135,7 @@ fun ImpactStatisticsScreen(
                                     fontSize = 11.sp,
                                 )
                             }
-                            Text("+${item.gcReward} GC", color = AppColors.accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("+${item.gcReward} GC", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }

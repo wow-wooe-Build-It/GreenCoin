@@ -46,6 +46,7 @@ import androidx.compose.foundation.shape.CircleShape
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.greencoins.app.data.AuthRepository
+import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import com.greencoins.app.theme.GreenCoinsTheme
 import kotlinx.coroutines.launch
@@ -66,10 +67,11 @@ fun AuthScreen(onLogin: () -> Unit) {
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
+    val colorScheme = MaterialTheme.colorScheme
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.bg),
+            .background(colorScheme.background),
     ) {
         val infiniteTransition = rememberInfiniteTransition(label = "glow")
         val scale by infiniteTransition.animateFloat(
@@ -100,7 +102,7 @@ fun AuthScreen(onLogin: () -> Unit) {
                 .alpha(alpha)
                 .background(
                     brush = Brush.radialGradient(
-                        colors = listOf(AppColors.accent.copy(alpha = 0.5f), Color.Transparent)
+                        colors = listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), Color.Transparent)
                     ),
                     shape = CircleShape
                 )
@@ -115,38 +117,38 @@ fun AuthScreen(onLogin: () -> Unit) {
             Box(
                 modifier = Modifier
                     .size(80.dp)
-                    .background(AppColors.accent, RoundedCornerShape(24.dp)),
+                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(24.dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Default.Star,
                     contentDescription = null,
                     modifier = Modifier.size(40.dp),
-                    tint = AppColors.black,
+                    tint = colorScheme.onPrimary,
                 )
             }
             Spacer(modifier = Modifier.height(32.dp))
             Text(
                 text = "GreenCoins",
-                color = AppColors.white,
+                color = colorScheme.onBackground,
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Rewarding your environmental impact",
-                color = AppColors.textSecondary,
+                color = colorScheme.onSurfaceVariant,
                 fontSize = 18.sp,
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(48.dp))
 
             if (isLoading) {
-                CircularProgressIndicator(color = AppColors.accent)
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             } else if (isEmailMode) {
                 Text(
                     text = if (isSignUp) "Create Account" else "Welcome Back",
-                    color = AppColors.white,
+                    color = colorScheme.onBackground,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.Start)
@@ -159,11 +161,11 @@ fun AuthScreen(onLogin: () -> Unit) {
                         onValueChange = { name = it },
                         label = { Text("Full Name", color = AppColors.textSecondary) },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = AppColors.white,
-                            unfocusedTextColor = AppColors.white,
-                            focusedBorderColor = AppColors.accent,
-                            unfocusedBorderColor = AppColors.border,
-                            cursorColor = AppColors.accent,
+                            focusedTextColor = colorScheme.onSurface,
+                            unfocusedTextColor = colorScheme.onSurface,
+                            focusedBorderColor = colorScheme.primary,
+                            unfocusedBorderColor = colorScheme.outline,
+                            cursorColor = MaterialTheme.colorScheme.primary,
                         ),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp)
@@ -174,11 +176,11 @@ fun AuthScreen(onLogin: () -> Unit) {
                         onValueChange = { phone = it },
                         label = { Text("Phone Number", color = AppColors.textSecondary) },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = AppColors.white,
-                            unfocusedTextColor = AppColors.white,
-                            focusedBorderColor = AppColors.accent,
-                            unfocusedBorderColor = AppColors.border,
-                            cursorColor = AppColors.accent,
+                            focusedTextColor = colorScheme.onSurface,
+                            unfocusedTextColor = colorScheme.onSurface,
+                            focusedBorderColor = colorScheme.primary,
+                            unfocusedBorderColor = colorScheme.outline,
+                            cursorColor = MaterialTheme.colorScheme.primary,
                         ),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp)
@@ -191,11 +193,11 @@ fun AuthScreen(onLogin: () -> Unit) {
                     onValueChange = { email = it },
                     label = { Text("Email", color = AppColors.textSecondary) },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = AppColors.white,
-                        unfocusedTextColor = AppColors.white,
-                        focusedBorderColor = AppColors.accent,
-                        unfocusedBorderColor = AppColors.border,
-                        cursorColor = AppColors.accent,
+                        focusedTextColor = colorScheme.onSurface,
+                        unfocusedTextColor = colorScheme.onSurface,
+                        focusedBorderColor = colorScheme.primary,
+                        unfocusedBorderColor = colorScheme.outline,
+                        cursorColor = MaterialTheme.colorScheme.primary,
                     ),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
@@ -207,11 +209,11 @@ fun AuthScreen(onLogin: () -> Unit) {
                     label = { Text("Password", color = AppColors.textSecondary) },
                     visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = AppColors.white,
-                        unfocusedTextColor = AppColors.white,
-                        focusedBorderColor = AppColors.accent,
-                        unfocusedBorderColor = AppColors.border,
-                        cursorColor = AppColors.accent,
+                        focusedTextColor = colorScheme.onSurface,
+                        unfocusedTextColor = colorScheme.onSurface,
+                        focusedBorderColor = colorScheme.primary,
+                        unfocusedBorderColor = colorScheme.outline,
+                        cursorColor = MaterialTheme.colorScheme.primary,
                     ),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
@@ -251,7 +253,7 @@ fun AuthScreen(onLogin: () -> Unit) {
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.accent, contentColor = AppColors.black),
+                    colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary, contentColor = colorScheme.onPrimary),
                     shape = RoundedCornerShape(20.dp),
                 ) {
                     Text(if (isSignUp) "Sign Up" else "Sign In", fontWeight = FontWeight.Bold)
@@ -259,7 +261,7 @@ fun AuthScreen(onLogin: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = if (isSignUp) "Already have an account? Sign In" else "Don't have an account? Create one",
-                    color = AppColors.white,
+                    color = colorScheme.onBackground,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
                         isSignUp = !isSignUp
@@ -271,7 +273,7 @@ fun AuthScreen(onLogin: () -> Unit) {
                      Spacer(modifier = Modifier.height(16.dp))
                      Text(
                         "Back",
-                        color = AppColors.textSecondary,
+                        color = colorScheme.onSurfaceVariant,
                         modifier = Modifier.clickable { isEmailMode = false }
                      )
                 }
@@ -297,7 +299,7 @@ fun AuthScreen(onLogin: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.white, contentColor = AppColors.black),
+                    colors = ButtonDefaults.buttonColors(containerColor = colorScheme.surface, contentColor = colorScheme.onSurface),
                     shape = RoundedCornerShape(20.dp),
                 ) {
                     AsyncImage(
@@ -315,8 +317,8 @@ fun AuthScreen(onLogin: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.accent),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.accent),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(20.dp),
                 ) {
                     Text("Login with Email", fontWeight = FontWeight.Bold)

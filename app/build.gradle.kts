@@ -82,4 +82,7 @@ dependencies {
     
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    // DataStore for theme persistence
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 }
