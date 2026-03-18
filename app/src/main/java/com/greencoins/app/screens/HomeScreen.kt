@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -66,6 +67,7 @@ import com.greencoins.app.data.AuthRepository
 fun HomeScreen(
     onMissionSelect: (String) -> Unit,
     onChallengeClick: (ChallengeDetailData) -> Unit = {},
+    onCommunityVerificationClick: () -> Unit = {},
     refreshHeader: () -> Unit = {}
 ) {
     var missions by remember { mutableStateOf<List<Mission>>(emptyList()) }
@@ -189,6 +191,60 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.size(4.dp))
                             Box(modifier = Modifier.size(4.dp).background(AppColors.accent, CircleShape))
                         }
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Featured Missions",
+            color = AppColors.white,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        GlassCard(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onCommunityVerificationClick,
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(AppColors.border)
+                        .padding(8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.VerifiedUser,
+                        contentDescription = null,
+                        tint = AppColors.accent,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Community Verification",
+                        color = AppColors.white,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                    )
+                    Text(
+                        "Verify eco actions in your area and earn GC",
+                        color = AppColors.textSecondary,
+                        fontSize = 10.sp,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("+5 GC", color = AppColors.accent, fontSize = 10.sp)
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Box(modifier = Modifier.size(4.dp).background(AppColors.accent, CircleShape))
                     }
                 }
             }

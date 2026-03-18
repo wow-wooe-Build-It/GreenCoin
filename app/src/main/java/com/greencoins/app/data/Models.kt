@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 
 // Screen type - preserved exactly
 enum class Screen {
-    Auth, Home, Shop, Plus, Challenges, Profile, MissionBrief, MissionUpload, MissionSuccess, ChallengeDetail, Help
+    Auth, Home, Shop, Plus, Challenges, Profile, MissionBrief, MissionUpload, MissionSuccess, ChallengeDetail, Help, CommunityVerification
 }
 
 enum class MissionIcon { TreePine, Recycle, Leaf, Users, Trash2, Zap }

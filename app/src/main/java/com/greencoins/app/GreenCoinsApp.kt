@@ -37,6 +37,7 @@ import com.greencoins.app.screens.AuthScreen
 import com.greencoins.app.screens.ChatBotSheet
 import com.greencoins.app.screens.CategoryRewardsScreen
 import com.greencoins.app.screens.ChallengesScreen
+import com.greencoins.app.screens.CommunityScreen
 import com.greencoins.app.screens.HelpScreen
 import com.greencoins.app.screens.HomeScreen
 import com.greencoins.app.screens.PlusFlow
@@ -127,6 +128,7 @@ fun GreenCoinsApp() {
             screen == Screen.Shop && selectedShopCategory != null -> selectedShopCategory = null
             screen == Screen.Shop -> screen = Screen.Home
             screen == Screen.Challenges -> screen = Screen.Home
+            screen == Screen.CommunityVerification -> screen = Screen.Home
             screen == Screen.ChallengeDetail -> screen = Screen.Challenges
             showChat -> showChat = false
             screen == Screen.Profile && (showProfilePersonalInfo || showProfileImpactStats || showProfileRedemptionHistory) -> {
@@ -159,6 +161,7 @@ fun GreenCoinsApp() {
                     screen == Screen.Shop && selectedShopCategory != null -> { { selectedShopCategory = null } }
                     screen == Screen.Shop -> { { screen = Screen.Home } }
                     screen == Screen.Challenges -> { { screen = Screen.Home } }
+                    screen == Screen.CommunityVerification -> { { screen = Screen.Home } }
                     screen == Screen.ChallengeDetail -> { { screen = Screen.Challenges } }
                     screen == Screen.Profile && (showProfilePersonalInfo || showProfileImpactStats || showProfileRedemptionHistory) -> {
                         { showProfilePersonalInfo = false; showProfileImpactStats = false; showProfileRedemptionHistory = false }
@@ -205,6 +208,7 @@ fun GreenCoinsApp() {
                             selectedChallenge = data
                             screen = Screen.ChallengeDetail
                         },
+                        onCommunityVerificationClick = { screen = Screen.CommunityVerification },
                         refreshHeader = { userViewModel.refresh() },
                     )
                     Screen.Shop -> when {
@@ -265,6 +269,11 @@ fun GreenCoinsApp() {
                     } else {
                         screen = Screen.Challenges // Fallback
                     }
+                    Screen.CommunityVerification -> CommunityScreen(
+                        onBack = { screen = Screen.Home },
+                        onVerifyReward = { userViewModel.refresh() },
+                        scope = scope,
+                    )
                     Screen.Profile -> ProfileScreen(
                         onLogout = {
                             scope.launch {
