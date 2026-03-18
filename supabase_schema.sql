@@ -434,6 +434,44 @@ begin
 end;
 $$ language plpgsql security definer;
 
+-- Community Verification: verification_requests table
+create table if not exists public.verification_requests (
+  id uuid default gen_random_uuid() primary key,
+  submission_id text not null,
+  user_id uuid references auth.users not null,
+  reason text not null,
+  image_url text,
+  status text default 'pending' check (status in ('pending', 'approved', 'rejected')),
+  created_at timestamptz default now()
+);
+
+alter table public.verification_requests enable row level security;
+
+drop policy if exists "Users can insert own verification" on public.verification_requests;
+create policy "Users can insert own verification"
+  on public.verification_requests for insert with check ( auth.uid() = user_id );
+
+drop policy if exists "Users can read own verifications" on public.verification_requests;
+create policy "Users can read own verifications"
+  on public.verification_requests for select using ( auth.uid() = user_id );
+
+-- Trigger: Grant +5 GC when verification is approved
+create or replace function public.handle_verification_approved()
+returns trigger as $$
+begin
+  if new.status = 'approved' and (tg_op = 'INSERT' or old.status != 'approved') then
+    update public.users
+    set total_gc = coalesce(total_gc, 0) + 5
+    where id = new.user_id;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists on_verification_approved on public.verification_requests;
+create trigger on_verification_approved
+  after insert or update on public.verification_requests
+  for each row execute procedure public.handle_verification_approved();
 
 -- SEED DATA
 
@@ -520,4 +558,15 @@ create policy "Users can upload their own avatar."
 create policy "Users can update their own avatar."
   on storage.objects for update
   using ( bucket_id = 'avatar' and auth.uid()::text = (storage.foldername(name))[1] );
+
+-- Storage: verification-images bucket for Community Verification
+insert into storage.buckets (id, name, public) values ('verification-images', 'verification-images', true) on conflict (id) do nothing;
+
+create policy "Verification images are publicly accessible."
+  on storage.objects for select
+  using ( bucket_id = 'verification-images' );
+
+create policy "Users can upload verification images."
+  on storage.objects for insert
+  with check ( bucket_id = 'verification-images' and auth.uid()::text = (storage.foldername(name))[1] );
 

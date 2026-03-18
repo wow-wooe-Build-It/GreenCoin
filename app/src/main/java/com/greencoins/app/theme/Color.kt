@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 object AppColors {
     val bg = Color(0xFF0D0D0D)
     val card = Color(0xB21F1F1F)       // rgba(31, 31, 31, 0.7)
+    val cardBg = Color(0xFF1A1A1A)
     val accent = Color(0xFFA2FF00)
     val accentSecondary = Color(0xFFC1FF72)
     val textSecondary = Color(0xFF757575)

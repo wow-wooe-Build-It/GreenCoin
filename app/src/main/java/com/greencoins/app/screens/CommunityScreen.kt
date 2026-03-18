@@ -1,5 +1,9 @@
 package com.greencoins.app.screens
 
+import android.graphics.Bitmap
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,16 +20,22 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,12 +43,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.greencoins.app.components.GlassCard
 import com.greencoins.app.data.AuthRepository
-import com.greencoins.app.data.UserRepository
+import com.greencoins.app.data.VerificationRepository
 import com.greencoins.app.theme.AppColors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -84,6 +98,73 @@ fun CommunityScreen(
     var reasonInput by remember { mutableStateOf("") }
     var selectedSubmissionId by remember { mutableStateOf<String?>(null) }
     var showError by remember { mutableStateOf(false) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedImageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var showImageSourceDialog by remember { mutableStateOf(false) }
+    var isSubmitting by remember { mutableStateOf(false) }
+    var verificationStatusBySubmission by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    val context = LocalContext.current
+
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+            selectedImageBitmap = null
+        }
+        showImageSourceDialog = false
+    }
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
+        bitmap?.let {
+            selectedImageBitmap = it
+            selectedImageUri = null
+        }
+        showImageSourceDialog = false
+    }
+
+    LaunchedEffect(userId, submissions) {
+        if (userId != null) {
+            val statuses = submissions.associate { sub ->
+                sub.id to (VerificationRepository.getVerificationStatus(userId, sub.id) ?: "")
+            }.filter { it.value.isNotEmpty() }
+            if (statuses.isNotEmpty()) {
+                verificationStatusBySubmission = verificationStatusBySubmission + statuses
+            }
+        }
+    }
+
+    if (showImageSourceDialog) {
+        AlertDialog(
+            onDismissRequest = { showImageSourceDialog = false },
+            title = { Text("Attach image", color = AppColors.white) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = { cameraLauncher.launch(null) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = AppColors.accent),
+                    ) {
+                        Icon(Icons.Filled.CameraAlt, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text("Camera")
+                    }
+                    OutlinedButton(
+                        onClick = { galleryLauncher.launch("image/*") },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = AppColors.accent),
+                    ) {
+                        Icon(Icons.Filled.Image, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text("Gallery")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showImageSourceDialog = false }) {
+                    Text("Cancel", color = AppColors.textSecondary)
+                }
+            },
+            containerColor = AppColors.cardBg,
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -218,8 +299,8 @@ fun CommunityScreen(
                                 ),
                                 shape = RoundedCornerShape(12.dp),
                             )
-                            androidx.compose.material3.OutlinedButton(
-                                onClick = { },
+                            OutlinedButton(
+                                onClick = { showImageSourceDialog = true },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = 8.dp),
@@ -231,11 +312,38 @@ fun CommunityScreen(
                                 Spacer(modifier = Modifier.size(8.dp))
                                 Text("Attach image", fontSize = 12.sp)
                             }
-                            val userId = AuthRepository.currentUser?.id
-                            if (userId != null && !sub.verifiedBy.contains(userId)) {
+                            if (selectedImageUri != null || selectedImageBitmap != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp)
+                                        .size(80.dp, 80.dp)
+                                        .background(AppColors.gray333, RoundedCornerShape(8.dp)),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    if (selectedImageUri != null) {
+                                        AsyncImage(
+                                            model = selectedImageUri,
+                                            contentDescription = "Selected image",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop,
+                                        )
+                                    } else if (selectedImageBitmap != null) {
+                                        androidx.compose.foundation.Image(
+                                            bitmap = selectedImageBitmap!!.asImageBitmap(),
+                                            contentDescription = "Selected image",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop,
+                                        )
+                                    }
+                                }
+                            }
+                            val currentUserId = AuthRepository.currentUser?.id
+                            val status = verificationStatusBySubmission[sub.id]
+                            if (currentUserId != null && status != "approved") {
                                 if (showError) {
                                     Text(
-                                        "Please enter a reason before verifying",
+                                        "Please enter a reason and attach an image before verifying",
                                         color = AppColors.redLogout,
                                         fontSize = 11.sp,
                                         modifier = Modifier.padding(top = 4.dp),
@@ -251,17 +359,42 @@ fun CommunityScreen(
                                                 showError = true
                                                 return@Button
                                             }
-                                            showError = false
-                                            scope.launch {
-                                                UserRepository.updateTotalGcDelta(userId, 5)
+                                            if (selectedImageUri == null && selectedImageBitmap == null) {
+                                                showError = true
+                                                return@Button
                                             }
-                                            val idx = submissions.indexOf(sub)
-                                            submissions[idx] = sub.copy(verifiedBy = sub.verifiedBy + userId)
-                                            onVerifyReward()
-                                            selectedSubmissionId = null
-                                            reasonInput = ""
+                                            showError = false
+                                            isSubmitting = true
+                                            scope.launch {
+                                                try {
+                                                    val imageBytes = when {
+                                                        selectedImageUri != null -> context.contentResolver.openInputStream(selectedImageUri!!)?.use { it.readBytes() }
+                                                        selectedImageBitmap != null -> {
+                                                            val stream = java.io.ByteArrayOutputStream()
+                                                            selectedImageBitmap!!.compress(Bitmap.CompressFormat.JPEG, 85, stream)
+                                                            stream.toByteArray()
+                                                        }
+                                                        else -> null
+                                                    }
+                                                    if (imageBytes != null && currentUserId != null) {
+                                                        val imageUrl = VerificationRepository.uploadVerificationImage(currentUserId, imageBytes)
+                                                        VerificationRepository.insertVerificationRequest(sub.id, currentUserId, reasonInput, imageUrl)
+                                                        verificationStatusBySubmission = verificationStatusBySubmission + (sub.id to "pending")
+                                                        selectedSubmissionId = null
+                                                        reasonInput = ""
+                                                        selectedImageUri = null
+                                                        selectedImageBitmap = null
+                                                        onVerifyReward()
+                                                    }
+                                                } catch (e: Exception) {
+                                                    e.printStackTrace()
+                                                    android.widget.Toast.makeText(context, "Upload failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                                                } finally {
+                                                    isSubmitting = false
+                                                }
+                                            }
                                         },
-                                        enabled = reasonInput.isNotBlank(),
+                                        enabled = reasonInput.isNotBlank() && (selectedImageUri != null || selectedImageBitmap != null) && !isSubmitting,
                                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                                             containerColor = AppColors.accent,
                                             contentColor = AppColors.black,
@@ -269,12 +402,21 @@ fun CommunityScreen(
                                             disabledContentColor = AppColors.textSecondary,
                                         ),
                                     ) {
-                                        Text("Verify (+5 GC)", fontSize = 12.sp)
+                                        if (isSubmitting) {
+                                            androidx.compose.material3.CircularProgressIndicator(
+                                                color = AppColors.black,
+                                                modifier = Modifier.size(20.dp),
+                                            )
+                                        } else {
+                                            Text("Verify (+5 GC)", fontSize = 12.sp)
+                                        }
                                     }
-                                    androidx.compose.material3.TextButton(
+                                    TextButton(
                                         onClick = {
                                             selectedSubmissionId = null
                                             showError = false
+                                            selectedImageUri = null
+                                            selectedImageBitmap = null
                                         },
                                     ) {
                                         Text("Cancel", color = AppColors.textSecondary, fontSize = 12.sp)
@@ -282,18 +424,30 @@ fun CommunityScreen(
                                 }
                             }
                         } else {
-                            val userId = AuthRepository.currentUser?.id
-                            if (userId != null && !sub.verifiedBy.contains(userId)) {
-                                androidx.compose.material3.TextButton(
-                                    onClick = { selectedSubmissionId = sub.id },
+                            val currentUserId = AuthRepository.currentUser?.id
+                            val status = verificationStatusBySubmission[sub.id]
+                            if (currentUserId != null && status != "approved" && status != "pending") {
+                                TextButton(
+                                    onClick = {
+                                        selectedSubmissionId = sub.id
+                                        selectedImageUri = null
+                                        selectedImageBitmap = null
+                                    },
                                     modifier = Modifier.padding(top = 8.dp),
                                 ) {
                                     Text("Add verification", color = AppColors.accent, fontSize = 12.sp)
                                 }
-                            } else if (userId != null && sub.verifiedBy.contains(userId)) {
+                            } else if (currentUserId != null && status == "approved") {
                                 Text(
                                     "✓ Verified by you (+5 GC)",
                                     color = AppColors.accent,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(top = 8.dp),
+                                )
+                            } else if (currentUserId != null && status == "pending") {
+                                Text(
+                                    "Verification submitted — Pending approval",
+                                    color = AppColors.textSecondary,
                                     fontSize = 12.sp,
                                     modifier = Modifier.padding(top = 8.dp),
                                 )
