@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -71,98 +69,85 @@ fun MyRewardsScreen(onBack: () -> Unit) {
         }
     }
 
-    Scaffold(
-        topBar = {
-            Column {
-                Spacer(modifier = Modifier.height(36.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                    Text(
-                        "My Rewards",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = themeOnSurfaceTextColor(),
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-                }
-                TabRow(
-                    selectedTabIndex = selectedTab,
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.primary
-                ) {
-                    tabs.forEachIndexed { index, title ->
-                        Tab(
-                            selected = selectedTab == index,
-                            onClick = { selectedTab = index },
-                            text = { 
-                                Text(
-                                    title, 
-                                    color = if (selectedTab == index) MaterialTheme.colorScheme.primary else themeOnSurfaceVariantTextColor(),
-                                    fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                                    fontSize = 13.sp
-                                ) 
-                            }
-                        )
-                    }
-                }
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else if (filteredCoupons.isEmpty()) {
-                Text(
-                    "No rewards found in this section.",
-                    modifier = Modifier.align(Alignment.Center).padding(32.dp),
-                    color = themeOnSurfaceVariantTextColor()
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(filteredCoupons) { coupon ->
-                        CouponCard(
-                            coupon = coupon,
-                            onClick = {
-                                if (coupon.status == "locked") {
-                                    activeScratchCoupon = coupon
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-
-            AnimatedVisibility(
-                visible = activeScratchCoupon != null,
-                enter = fadeIn() + scaleIn(initialScale = 0.8f),
-                exit = fadeOut() + scaleOut(targetScale = 0.8f),
-                modifier = Modifier.fillMaxSize()
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 96.dp),
+        ) {
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.primary
             ) {
-                if (activeScratchCoupon != null) {
-                    ScratchPopup(
-                        coupon = activeScratchCoupon!!,
-                        onDismiss = { activeScratchCoupon = null },
-                        onScratched = { updatedCouponId ->
-                            // Update local list
-                            coupons = coupons.map { 
-                                if (it.id == updatedCouponId) it.copy(status = "scratched") 
-                                else it 
-                            }
-                            activeScratchCoupon = null
-                            selectedTab = 1
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = {
+                            Text(
+                                title,
+                                color = if (selectedTab == index) MaterialTheme.colorScheme.primary else themeOnSurfaceVariantTextColor(),
+                                fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
+                                fontSize = 13.sp
+                            )
                         }
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                } else if (filteredCoupons.isEmpty()) {
+                    Text(
+                        "No rewards found in this section.",
+                        modifier = Modifier.align(Alignment.Center).padding(32.dp),
+                        color = themeOnSurfaceVariantTextColor()
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(filteredCoupons) { coupon ->
+                            CouponCard(
+                                coupon = coupon,
+                                onClick = {
+                                    if (coupon.status == "locked") {
+                                        activeScratchCoupon = coupon
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = activeScratchCoupon != null,
+            enter = fadeIn() + scaleIn(initialScale = 0.8f),
+            exit = fadeOut() + scaleOut(targetScale = 0.8f),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (activeScratchCoupon != null) {
+                ScratchPopup(
+                    coupon = activeScratchCoupon!!,
+                    onDismiss = { activeScratchCoupon = null },
+                    onScratched = { updatedCouponId ->
+                        coupons = coupons.map {
+                            if (it.id == updatedCouponId) it.copy(status = "scratched")
+                            else it
+                        }
+                        activeScratchCoupon = null
+                        selectedTab = 1
+                    }
+                )
             }
         }
     }
