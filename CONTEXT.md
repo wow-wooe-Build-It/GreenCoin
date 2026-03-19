@@ -1,4 +1,4 @@
-# GreenCoins Project – Chat Context
+# GreenCoins Project - Chat Context
 
 Use this in a **new Cursor window** (e.g. paste into the chat or reference with `@CONTEXT.md`) to continue working as if we’ve been chatting here.
 

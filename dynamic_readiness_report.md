@@ -1,4 +1,4 @@
-# GreenCoins Database & Dynamic Readiness Report
+# GreenCoins Database and Dynamic Readiness Report
 
 ## Step 1 — Database Schema Analysis
 

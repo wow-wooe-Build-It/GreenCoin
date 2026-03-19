@@ -1,3 +1,4 @@
+// TransactionRepository provides access to the user's GC transaction history.
 package com.greencoins.app.data
 
 import io.github.jan.supabase.postgrest.from
