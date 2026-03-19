@@ -366,37 +366,14 @@ fun StreakProgressCard(
     val textSecondaryColor = themeOnSurfaceVariantTextColor()
     val mutedBg = themeMutedBgColor()
     val iconBg = themeIconBgColor()
-    val levelThresholds = mapOf(
-        1 to 0,
-        2 to 5,
-        3 to 15,
-        4 to 30,
-        5 to 50,
-        6 to 75,
-        7 to 100,
-        8 to 150,
-        9 to 250,
-        10 to 500
-    )
-    val levelTitles = mapOf(
-        1 to "Seed",
-        2 to "Sprout",
-        3 to "Eco Explorer",
-        4 to "Green Guardian",
-        5 to "Earth Champion",
-        6 to "Nature Defender",
-        7 to "Planet Savior",
-        8 to "Climate Hero",
-        9 to "Eco Legend",
-        10 to "Gaia's Avatar"
-    )
-    
-    // Find effective level based on actual missionsCompleted
+
     var effectiveLevel = 1
     var effectiveTitle = "Seed"
     var currentTierStart = 0
     var nextTierTarget = 10
+    var isMaxLevel = false
     
+    // Use dynamic DB records if available, else use fallback logic
     if (levelsTable.isNotEmpty()) {
         for (i in levelsTable.indices) {
             val lvl = levelsTable[i]
@@ -407,22 +384,26 @@ fun StreakProgressCard(
                 if (i + 1 < levelsTable.size) {
                     nextTierTarget = levelsTable[i + 1].missionsRequired
                 } else {
-                    nextTierTarget = lvl.missionsRequired // Max level
+                    nextTierTarget = lvl.missionsRequired
+                    isMaxLevel = true
                 }
             } else {
                 break
             }
         }
     } else {
-        for (i in levelData.indices) {
-            if (missionsCompleted >= levelData[i].first) {
+        val fallbackThresholds = listOf(0, 5, 15, 30, 50, 75, 100, 150, 250, 500)
+        val fallbackTitles = listOf("Seed", "Sprout", "Eco Explorer", "Green Guardian", "Earth Champion", "Nature Defender", "Planet Savior", "Climate Hero", "Eco Legend", "Gaia's Avatar")
+        for (i in fallbackThresholds.indices) {
+            if (missionsCompleted >= fallbackThresholds[i]) {
                 effectiveLevel = i + 1
-                effectiveTitle = levelData[i].second
-                currentTierStart = levelData[i].first
-                if (i + 1 < levelData.size) {
-                    nextTierTarget = levelData[i + 1].first
+                effectiveTitle = fallbackTitles[i]
+                currentTierStart = fallbackThresholds[i]
+                if (i + 1 < fallbackThresholds.size) {
+                    nextTierTarget = fallbackThresholds[i + 1]
                 } else {
-                    nextTierTarget = levelData[i].first // Max level
+                    nextTierTarget = fallbackThresholds[i]
+                    isMaxLevel = true
                 }
             } else {
                 break
@@ -434,23 +415,10 @@ fun StreakProgressCard(
     // Calendar: Sunday=1, Monday=2, ... Saturday=7. Map to Mon=0..Sun=6.
     val currentDayIndex = ((java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK) + 5) % 7)
 
-    var effectiveLevel = 1
-    for (i in 1..10) {
-        if (missionsCompleted >= (levelThresholds[i] ?: 0)) {
-            effectiveLevel = i
-        } else {
-            break
-        }
-    }
-
-    val nextLevel = (effectiveLevel + 1).coerceAtMost(10)
-    val missionsRequiredForNextLevel = levelThresholds[nextLevel] ?: 500
-    val currentLevelThreshold = levelThresholds[effectiveLevel] ?: 0
+    val progressRange = (nextTierTarget - currentTierStart).coerceAtLeast(1)
+    val currentProgress = (missionsCompleted - currentTierStart).coerceAtLeast(0)
     
-    val progressRange = (missionsRequiredForNextLevel - currentLevelThreshold).coerceAtLeast(1)
-    val currentProgress = (missionsCompleted - currentLevelThreshold).coerceAtLeast(0)
-    
-    val rawProgress = if (effectiveLevel >= 10) 1f else (currentProgress / progressRange.toFloat())
+    val rawProgress = if (isMaxLevel) 1f else (currentProgress.toFloat() / progressRange.toFloat())
     val animatedProgress by animateFloatAsState(
         targetValue = rawProgress.coerceIn(0f, 1f),
         animationSpec = tween(durationMillis = 700, easing = FastOutSlowInEasing),
@@ -599,14 +567,14 @@ fun StreakProgressCard(
             )
 
             Text(
-                text = levelTitles[effectiveLevel] ?: "Eco Hero",
+                text = effectiveTitle,
                 color = textColor,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
             )
 
             Text(
-                text = if (effectiveLevel >= 10) "$missionsCompleted total missions" else "$missionsCompleted / $missionsRequiredForNextLevel missions",
+                text = if (isMaxLevel) "$missionsCompleted missions (Max Level)" else "$missionsCompleted / $nextTierTarget missions",
                 color = textSecondaryColor,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
