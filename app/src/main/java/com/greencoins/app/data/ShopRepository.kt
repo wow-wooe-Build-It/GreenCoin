@@ -8,11 +8,29 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import io.github.jan.supabase.functions.functions
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.github.jan.supabase.auth.auth
+import io.ktor.client.request.headers
+import io.ktor.http.HttpHeaders
 
 @Serializable
 private data class RewardCategoryRow(
     val name: String,
     @SerialName("sort_order") val sortOrder: Int = 0,
+)
+
+@Serializable
+data class HybridOrderResponse(
+    @SerialName("app_order_id") val appOrderId: String? = null,
+    @SerialName("razorpay_order_id") val razorpayOrderId: String? = null,
+    val amount: Long = 0L,
+    val currency: String = "INR",
+    @SerialName("key_id") val keyId: String? = null,
+    @SerialName("reward_title") val rewardTitle: String? = null,
+    val success: Boolean = false,
+    val message: String? = null
 )
 
 object ShopRepository {
@@ -88,19 +106,81 @@ object ShopRepository {
         }
     }
 
-    /** Fetch reward IDs the user has already redeemed (from transactions). */
+    // Fetch reward IDs the user has already redeemed (from transactions).
     suspend fun getRedeemedRewardIds(userId: String): Set<String> = withContext(Dispatchers.IO) {
         try {
             val rows = client.from("transactions").select(columns = io.github.jan.supabase.postgrest.query.Columns.list("related_reward_id")) {
                 filter {
                     eq("user_id", userId)
-                    eq("type", "redeem")
+                    eq("type", "reward_gc_debit")
                 }
             }.decodeList<RelatedRewardRow>()
             rows.mapNotNull { it.relatedRewardId }.toSet()
         } catch (e: Exception) {
             e.printStackTrace()
             emptySet()
+        }
+    }
+
+    suspend fun createHybridOrder(rewardId: String): HybridOrderResponse? = withContext(Dispatchers.IO) {
+        try {
+            val reqBody = buildJsonObject { put("reward_id", rewardId) }.toString()
+            val token = client.auth.currentAccessTokenOrNull()
+            
+            val responseStr = client.functions
+                .invoke("create-hybrid-order") {
+                    if (token != null) {
+                        headers {
+                            append(HttpHeaders.Authorization, "Bearer $token")
+                        }
+                    }
+                    setBody(reqBody)
+                }.let {
+                    // It returns an HttpResponse in ktor. 
+                    it.bodyAsText()
+                }
+            
+            kotlinx.serialization.json.Json { ignoreUnknownKeys = true }.decodeFromString(
+                HybridOrderResponse.serializer(), responseStr
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    suspend fun verifyHybridPayment(
+        appOrderId: String,
+        razorpayPaymentId: String,
+        razorpayOrderId: String,
+        razorpaySignature: String
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val reqBody = buildJsonObject {
+                put("app_order_id", appOrderId)
+                put("razorpay_payment_id", razorpayPaymentId)
+                put("razorpay_order_id", razorpayOrderId)
+                put("razorpay_signature", razorpaySignature)
+            }.toString()
+
+            val token = client.auth.currentAccessTokenOrNull()
+            val responseStr = client.functions
+                .invoke("verify-hybrid-payment") {
+                    if (token != null) {
+                        headers {
+                            append(HttpHeaders.Authorization, "Bearer $token")
+                        }
+                    }
+                    setBody(reqBody)
+                }.bodyAsText()
+                
+            val resp = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }.decodeFromString(
+                HybridOrderResponse.serializer(), responseStr
+            )
+            resp.success
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 }

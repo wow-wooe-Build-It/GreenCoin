@@ -11,8 +11,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.greencoins.app.data.ThemePreferences
 import com.greencoins.app.theme.GreenCoinsTheme
+import com.razorpay.PaymentData
+import com.razorpay.PaymentResultWithDataListener
 
-class MainActivity : ComponentActivity() {
+object RazorpayController {
+    var paymentCallback: ((appOrderId: String, razorpayPaymentId: String?, razorpayOrderId: String?, razorpaySignature: String?, error: String?) -> Unit)? = null
+    var currentAppOrderId: String? = null
+}
+
+class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -33,5 +40,22 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onPaymentSuccess(razorpayPaymentId: String?, paymentData: PaymentData?) {
+        RazorpayController.paymentCallback?.invoke(
+            RazorpayController.currentAppOrderId ?: "",
+            paymentData?.paymentId,
+            paymentData?.orderId,
+            paymentData?.signature,
+            null
+        )
+    }
+
+    override fun onPaymentError(code: Int, response: String?, paymentData: PaymentData?) {
+        RazorpayController.paymentCallback?.invoke(
+            RazorpayController.currentAppOrderId ?: "",
+            null, null, null, response ?: "Payment Error $code"
+        )
     }
 }
