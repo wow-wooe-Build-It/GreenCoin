@@ -34,9 +34,9 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -71,8 +71,6 @@ import java.util.Locale
 import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import com.greencoins.app.ui.toImageVector
-import com.greencoins.app.data.Submission
-import com.greencoins.app.data.SubmissionVerificationRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -89,7 +87,7 @@ fun PlusFlow(
 ) {
     var missions by remember { mutableStateOf<List<Mission>>(emptyList()) }
     var selectedMission by remember { mutableStateOf<Mission?>(null) }
-    var finalSubmission by remember { mutableStateOf<Submission?>(null) }
+    var finalSubmission by remember { mutableStateOf<com.greencoins.app.data.Submission?>(null) }
     
     // Fetch all missions for selection list
     LaunchedEffect(Unit) {
@@ -116,12 +114,12 @@ fun PlusFlow(
             if (selectedMission != null) {
                 PlusUploadStep(
                     mission = selectedMission!!, 
-                    onNext = { sub -> 
-                        finalSubmission = sub
-                        onNext() 
-                    }, 
+                    onNext = onNext, 
                     onCancel = onCancel, 
-                    onMissionSubmitted = onMissionSubmitted
+                    onSubmissionComplete = {
+                        finalSubmission = it
+                        onMissionSubmitted()
+                    }
                 )
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -356,7 +354,7 @@ private fun hasValidExifMetadata(context: Context, uri: Uri): Boolean {
 }
 
 @Composable
-private fun PlusUploadStep(mission: Mission, onNext: (Submission) -> Unit, onCancel: () -> Unit, onMissionSubmitted: () -> Unit = {}) {
+private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () -> Unit, onSubmissionComplete: (com.greencoins.app.data.Submission) -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var beforeImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -380,22 +378,22 @@ private fun PlusUploadStep(mission: Mission, onNext: (Submission) -> Unit, onCan
                         val beforeBytes = beforeInputStream.use { it.readBytes() }
                         val afterBytes = afterInputStream.use { it.readBytes() }
                         try {
-                            val beforeUrl = MissionRepository.uploadMissionProof(userId, beforeBytes, "before")
-                            val afterUrl = MissionRepository.uploadMissionProof(userId, afterBytes, "after")
-                            val insertedSubmission = MissionRepository.submitMission(userId, mission.id, beforeUrl, afterUrl, description, lat, lon, locName)
+                            val beforeImageUrl = MissionRepository.uploadMissionProof(userId, beforeBytes, "before")
+                            val afterImageUrl = MissionRepository.uploadMissionProof(userId, afterBytes, "after")
+                            val submissionRow = MissionRepository.submitMission(userId, mission.id, beforeImageUrl, afterImageUrl, description, lat, lon, locName)
                             
-                            if (insertedSubmission != null) {
-                                // 1. AI pipeline
-                                SubmissionVerificationRepository.verifySubmission(insertedSubmission.id, beforeUrl, afterUrl, mission.title)
-                                // 2. Refetch real state
-                                val finalState = SubmissionVerificationRepository.getSubmissionById(insertedSubmission.id) ?: insertedSubmission
-                                
-                                if (finalState.status == "verified") {
-                                    onMissionSubmitted()
-                                }
-                                onNext(finalState)
+                            if (submissionRow != null) {
+                                // Trigger AI Verification Edge Function fire-and-forget
+                                com.greencoins.app.data.SubmissionVerificationRepository.triggerVerification(
+                                    submissionId = submissionRow.id,
+                                    beforeUrl = beforeImageUrl,
+                                    afterUrl = afterImageUrl,
+                                    mission = mission.title
+                                )
+                                onSubmissionComplete(submissionRow)
+                                onNext()
                             } else {
-                                android.widget.Toast.makeText(context, "Upload failed to insert", android.widget.Toast.LENGTH_LONG).show()
+                                android.widget.Toast.makeText(context, "Failed to create submission row", android.widget.Toast.LENGTH_LONG).show()
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
@@ -647,113 +645,172 @@ private fun PlusUploadStep(mission: Mission, onNext: (Submission) -> Unit, onCan
 }
 
 @Composable
-private fun PlusSuccessStep(mission: Mission, submission: Submission, onCancel: () -> Unit, onMissionSubmitted: () -> Unit = {}) {
-    // Poll for coin/streak updates while verification is in progress (est. 15 mins)
-    LaunchedEffect(Unit) {
-        repeat(8) {
-            delay(15_000)
-            onMissionSubmitted()
+private fun PlusSuccessStep(mission: Mission, submission: com.greencoins.app.data.Submission, onCancel: () -> Unit, onMissionSubmitted: () -> Unit = {}) {
+    var currentSub by remember { mutableStateOf(submission) }
+    var showScratchNotification by remember { mutableStateOf(false) }
+
+    // Poll for status changes while verification is pending (or for 15 mins)
+    LaunchedEffect(currentSub.id) {
+        if (currentSub.status == "pending") {
+            repeat(30) {
+                delay(10_000)
+                val refreshed = com.greencoins.app.data.SubmissionVerificationRepository.getSubmissionById(currentSub.id)
+                if (refreshed != null) {
+                    currentSub = refreshed
+                    if (refreshed.status != "pending") {
+                        if (refreshed.status == "verified") {
+                            showScratchNotification = true
+                        }
+                        onMissionSubmitted()
+                        return@LaunchedEffect
+                    }
+                }
+            }
+        } else if (currentSub.status == "verified") {
+            showScratchNotification = true
         }
     }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(onClick = onCancel) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AppColors.textSecondary)
-            }
-        }
-        Spacer(modifier = Modifier.weight(0.3f))
-        val isVerified = submission.status == "verified"
-        val isRejected = submission.status == "rejected"
-        val isPending = submission.status == "pending"
-
-        val iconData = when {
-            isVerified -> Pair(Icons.Default.CheckCircle, MaterialTheme.colorScheme.primary)
-            isRejected -> Pair(Icons.Default.Clear, androidx.compose.ui.graphics.Color.Red)
-            else -> Pair(Icons.Default.Refresh, androidx.compose.ui.graphics.Color(0xFFECA30B))
-        }
-
-        Box(
+    
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .size(128.dp)
-                .background(iconData.second.copy(alpha=0.15f), CircleShape),
-            contentAlignment = Alignment.Center,
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Icon(imageVector = iconData.first, contentDescription = null, modifier = Modifier.size(64.dp), tint = iconData.second)
-        }
-        Spacer(modifier = Modifier.height(40.dp))
-        
-        val titleText = when {
-            isVerified -> "Mission verified"
-            isRejected -> "Mission rejected"
-            else -> "Needs manual review"
-        }
-        Text(titleText, color = MaterialTheme.colorScheme.onBackground, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        val descText = when {
-            isVerified -> "Your proof was authentic. You have earned ${mission.gcReward} GreenCoins!"
-            isRejected -> submission.rejectedReason ?: "Your image proof did not match the mission requirements."
-            else -> "AI flagged this for review: ${submission.rejectedReason ?: "Analysis uncertain"}.\nModerators will verify it shortly."
-        }
-        Text(
-            descText,
-            color = AppColors.textSecondary,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(48.dp))
-        GlassCard(modifier = Modifier.fillMaxWidth()) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onCancel) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AppColors.textSecondary)
+                }
+            }
+            Spacer(modifier = Modifier.weight(0.3f))
+            Box(
+                modifier = Modifier
+                    .size(128.dp)
+                    .background(
+                        when (currentSub.status) {
+                            "verified" -> MaterialTheme.colorScheme.primary
+                            "rejected" -> AppColors.redLogout
+                            else -> AppColors.pendingYellow
+                        }, CircleShape
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                val icon = when (currentSub.status) {
+                    "verified" -> Icons.Default.CheckCircle
+                    "rejected" -> Icons.Default.Add // Or cross, we use add rotated
+                    else -> Icons.Default.CheckCircle // Pending
+                }
+                Icon(icon, contentDescription = null, modifier = Modifier.size(64.dp).let {
+                    if (currentSub.status == "rejected") it.graphicsLayer { rotationZ = 45f } else it
+                }, tint = MaterialTheme.colorScheme.onPrimary)
+            }
+            Spacer(modifier = Modifier.height(40.dp))
+            val headerText = when (currentSub.status) {
+                "verified" -> "Mission Verified!"
+                "rejected" -> "Mission Rejected"
+                else -> "Request Sent!"
+            }
+            Text(headerText, color = MaterialTheme.colorScheme.onBackground, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(16.dp))
+            val subtext = when (currentSub.status) {
+                "verified" -> "Awesome job! You've earned the coins and eco score."
+                "rejected" -> currentSub.rejectedReason ?: "Your proof did not meet the requirements."
+                else -> "Our AI is verifying your mission proof. You'll receive coins once approved (est. 15 mins)."
+            }
+            Text(
+                subtext,
+                color = if (currentSub.status == "rejected") AppColors.redLogout else AppColors.textSecondary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(48.dp))
+            GlassCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(MaterialTheme.colorScheme.surfaceContainer)
+                                .padding(8.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(mission.icon.toImageVector(), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+                        }
+                        Spacer(modifier = Modifier.size(12.dp))
+                        Column {
+                            Text(mission.title, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text("Just now", color = AppColors.textSecondary, fontSize = 10.sp)
+                        }
+                    }
+                    val bgBox = when (currentSub.status) {
+                        "verified" -> MaterialTheme.colorScheme.primary.copy(alpha=0.1f)
+                        "rejected" -> AppColors.redLogout.copy(alpha=0.1f)
+                        else -> AppColors.pendingYellowBg
+                    }
+                    val textCol = when (currentSub.status) {
+                        "verified" -> MaterialTheme.colorScheme.primary
+                        "rejected" -> AppColors.redLogout
+                        else -> AppColors.pendingYellow
+                    }
                     Box(
                         modifier = Modifier
-                            .size(40.dp)
-                            .background(MaterialTheme.colorScheme.surfaceContainer)
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center,
+                            .background(bgBox, RoundedCornerShape(9999.dp))
+                            .border(1.dp, textCol, RoundedCornerShape(9999.dp))
+                            .padding(horizontal = 12.dp, vertical = 4.dp),
                     ) {
-                        Icon(mission.icon.toImageVector(), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-                    }
-                    Spacer(modifier = Modifier.size(12.dp))
-                    Column {
-                        Text(mission.title, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                        Text("Just now", color = AppColors.textSecondary, fontSize = 10.sp)
+                        Text(currentSub.status.uppercase(), color = textCol, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     }
                 }
-                Box(
-                    modifier = Modifier
-                        .background(iconData.second.copy(alpha=0.15f), RoundedCornerShape(9999.dp))
-                        .border(1.dp, iconData.second, RoundedCornerShape(9999.dp))
-                        .padding(horizontal = 12.dp, vertical = 4.dp),
-                ) {
-                    Text(submission.status.uppercase(), color = iconData.second, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.height(40.dp))
+            Button(
+                onClick = onCancel,
+                modifier = Modifier.fillMaxWidth().height(64.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface, contentColor = MaterialTheme.colorScheme.onSurface),
+                shape = RoundedCornerShape(24.dp),
+            ) {
+                Text("Back to Dashboard", fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.weight(0.5f))
+        }
+
+        androidx.compose.animation.AnimatedVisibility(
+            visible = showScratchNotification,
+            enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.slideInVertically(initialOffsetY = { -it }),
+            exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.slideOutVertically(targetOffsetY = { -it }),
+            modifier = Modifier.align(Alignment.TopCenter)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp, 32.dp, 16.dp, 16.dp)
+                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(24.dp))
+                    .clickable {
+                        showScratchNotification = false
+                        // The user will see this notification and theoretically navigate to Profile -> My Rewards
+                        // But for simplicity of CTA flow, we just let them tap it away or go Dashboard
+                    }
+                    .padding(20.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.CardGiftcard, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(32.dp))
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text("Scratch Card Unlocked!", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text("Head to Profile -> My Rewards", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), fontSize = 12.sp)
+                    }
                 }
             }
         }
-        Spacer(modifier = Modifier.height(40.dp))
-        Button(
-            onClick = onCancel,
-            modifier = Modifier.fillMaxWidth().height(64.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surface, contentColor = MaterialTheme.colorScheme.onSurface),
-            shape = RoundedCornerShape(24.dp),
-        ) {
-            Text("Back to Dashboard", fontWeight = FontWeight.Bold)
-        }
-        Spacer(modifier = Modifier.weight(0.5f))
     }
 }

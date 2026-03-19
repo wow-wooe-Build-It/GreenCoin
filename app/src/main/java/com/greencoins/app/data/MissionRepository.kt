@@ -44,7 +44,6 @@ object MissionRepository {
     }
 
 
-    // Submit a proof (Create submission)
     suspend fun submitMission(
         userId: String, 
         missionId: String, 
@@ -55,23 +54,23 @@ object MissionRepository {
         longitude: Double? = null,
         locationName: String? = null
     ): Submission? = withContext(Dispatchers.IO) {
-        val submissionJson = buildJsonObject {
-            put("user_id", userId)
-            put("mission_id", missionId)
-            put("before_image_url", beforeImageUrl)
-            put("after_image_url", afterImageUrl)
-            put("image_url", afterImageUrl) // Keep for backward compatibility
-            put("description", description)
-            put("latitude", latitude)
-            put("longitude", longitude)
-            put("location_name", locationName)
-            put("status", "pending")
-        }
-        
         try {
+            val submissionJson = buildJsonObject {
+                put("user_id", userId)
+                put("mission_id", missionId)
+                put("before_image_url", beforeImageUrl)
+                put("after_image_url", afterImageUrl)
+                put("image_url", afterImageUrl) // Keep for backward compatibility
+                put("description", description)
+                put("latitude", latitude)
+                put("longitude", longitude)
+                put("location_name", locationName)
+                put("status", "pending")
+            }
+            
             client.from("submissions").insert(submissionJson) {
                 select()
-            }.decodeSingleOrNull<Submission>()
+            }.decodeSingle<Submission>()
         } catch (e: Exception) {
             e.printStackTrace()
             null

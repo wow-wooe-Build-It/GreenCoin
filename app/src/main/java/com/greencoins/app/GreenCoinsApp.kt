@@ -85,6 +85,7 @@ fun GreenCoinsApp() {
     var showProfilePersonalInfo by remember { mutableStateOf(false) }
     var showProfileImpactStats by remember { mutableStateOf(false) }
     var showProfileRedemptionHistory by remember { mutableStateOf(false) }
+    var showProfileMyRewards by remember { mutableStateOf(false) }
     val shopViewModel: ShopViewModel = viewModel()
     val shopCategories by shopViewModel.categories.collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
@@ -99,6 +100,7 @@ fun GreenCoinsApp() {
                 showProfilePersonalInfo = false
                 showProfileImpactStats = false
                 showProfileRedemptionHistory = false
+                showProfileMyRewards = false
             }
             screen = s
         }
@@ -122,7 +124,7 @@ fun GreenCoinsApp() {
         }
     }
 
-    BackHandler(enabled = isLoggedIn == true && (screen != Screen.Home || showChat || showProfilePersonalInfo || showProfileImpactStats || showProfileRedemptionHistory || selectedShopCategory != null)) {
+    BackHandler(enabled = isLoggedIn == true && (screen != Screen.Home || showChat || showProfilePersonalInfo || showProfileImpactStats || showProfileRedemptionHistory || showProfileMyRewards || selectedShopCategory != null)) {
         when {
             screen == Screen.Help -> screen = Screen.Home
             screen == Screen.Plus -> screen = Screen.Home
@@ -132,10 +134,11 @@ fun GreenCoinsApp() {
             screen == Screen.CommunityVerification -> screen = Screen.Home
             screen == Screen.ChallengeDetail -> screen = Screen.Challenges
             showChat -> showChat = false
-            screen == Screen.Profile && (showProfilePersonalInfo || showProfileImpactStats || showProfileRedemptionHistory) -> {
+            screen == Screen.Profile && (showProfilePersonalInfo || showProfileImpactStats || showProfileRedemptionHistory || showProfileMyRewards) -> {
                 showProfilePersonalInfo = false
                 showProfileImpactStats = false
                 showProfileRedemptionHistory = false
+                showProfileMyRewards = false
             }
             screen == Screen.Profile -> screen = Screen.Home
             else -> { }
@@ -164,8 +167,8 @@ fun GreenCoinsApp() {
                     screen == Screen.Challenges -> { { screen = Screen.Home } }
                     screen == Screen.CommunityVerification -> { { screen = Screen.Home } }
                     screen == Screen.ChallengeDetail -> { { screen = Screen.Challenges } }
-                    screen == Screen.Profile && (showProfilePersonalInfo || showProfileImpactStats || showProfileRedemptionHistory) -> {
-                        { showProfilePersonalInfo = false; showProfileImpactStats = false; showProfileRedemptionHistory = false }
+                    screen == Screen.Profile && (showProfilePersonalInfo || showProfileImpactStats || showProfileRedemptionHistory || showProfileMyRewards) -> {
+                        { showProfilePersonalInfo = false; showProfileImpactStats = false; showProfileRedemptionHistory = false; showProfileMyRewards = false }
                     }
                     screen == Screen.Profile -> { { screen = Screen.Home } }
                     else -> null
@@ -287,6 +290,8 @@ fun GreenCoinsApp() {
                         onShowImpactStatisticsChange = { showProfileImpactStats = it },
                         showRedemptionHistory = showProfileRedemptionHistory,
                         onShowRedemptionHistoryChange = { showProfileRedemptionHistory = it },
+                        showMyRewards = showProfileMyRewards,
+                        onShowMyRewardsChange = { showProfileMyRewards = it },
                     )
                     else -> { }
                 }
