@@ -259,7 +259,7 @@ private fun PlusBriefStep(mission: Mission, onNext: () -> Unit, onCancel: () -> 
 }
 
 @Composable
-private fun MissionReminderCard() {
+private fun MissionReminderCard(mission: Mission) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -280,7 +280,7 @@ private fun MissionReminderCard() {
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = missionIconPlaceholder().toImageVector(),
+                    imageVector = mission.icon.toImageVector(),
                     contentDescription = "Mission",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp),
@@ -294,7 +294,7 @@ private fun MissionReminderCard() {
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = "Plant a Native Tree",
+                    text = mission.title,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -315,7 +315,7 @@ private fun MissionReminderCard() {
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = "+250 GreenCoins",
+                    text = "+${mission.gcReward} GreenCoins",
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
@@ -516,7 +516,7 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
         }
         Spacer(modifier = Modifier.height(24.dp))
 
-        MissionReminderCard()
+        MissionReminderCard(mission = mission)
 
         Spacer(modifier = Modifier.height(32.dp))
         Row(
