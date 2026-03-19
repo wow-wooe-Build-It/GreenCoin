@@ -54,7 +54,7 @@ object MissionRepository {
         latitude: Double? = null,
         longitude: Double? = null,
         locationName: String? = null
-    ) = withContext(Dispatchers.IO) {
+    ): Submission? = withContext(Dispatchers.IO) {
         val submissionJson = buildJsonObject {
             put("user_id", userId)
             put("mission_id", missionId)
@@ -68,7 +68,13 @@ object MissionRepository {
             put("status", "pending")
         }
         
-        client.from("submissions").insert(submissionJson)
-        Unit
+        try {
+            client.from("submissions").insert(submissionJson) {
+                select()
+            }.decodeSingleOrNull<Submission>()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 }

@@ -34,6 +34,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -69,6 +71,8 @@ import java.util.Locale
 import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import com.greencoins.app.ui.toImageVector
+import com.greencoins.app.data.Submission
+import com.greencoins.app.data.SubmissionVerificationRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -85,6 +89,7 @@ fun PlusFlow(
 ) {
     var missions by remember { mutableStateOf<List<Mission>>(emptyList()) }
     var selectedMission by remember { mutableStateOf<Mission?>(null) }
+    var finalSubmission by remember { mutableStateOf<Submission?>(null) }
     
     // Fetch all missions for selection list
     LaunchedEffect(Unit) {
@@ -109,14 +114,22 @@ fun PlusFlow(
         }
         is PlusStep.Upload -> {
             if (selectedMission != null) {
-                PlusUploadStep(mission = selectedMission!!, onNext = onNext, onCancel = onCancel, onMissionSubmitted = onMissionSubmitted)
+                PlusUploadStep(
+                    mission = selectedMission!!, 
+                    onNext = { sub -> 
+                        finalSubmission = sub
+                        onNext() 
+                    }, 
+                    onCancel = onCancel, 
+                    onMissionSubmitted = onMissionSubmitted
+                )
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             }
         }
         is PlusStep.Success -> {
-            if (selectedMission != null) {
-                PlusSuccessStep(mission = selectedMission!!, onCancel = onCancel, onMissionSubmitted = onMissionSubmitted)
+            if (selectedMission != null && finalSubmission != null) {
+                PlusSuccessStep(mission = selectedMission!!, submission = finalSubmission!!, onCancel = onCancel, onMissionSubmitted = onMissionSubmitted)
             } else {
                  Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             }
@@ -343,7 +356,7 @@ private fun hasValidExifMetadata(context: Context, uri: Uri): Boolean {
 }
 
 @Composable
-private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () -> Unit, onMissionSubmitted: () -> Unit = {}) {
+private fun PlusUploadStep(mission: Mission, onNext: (Submission) -> Unit, onCancel: () -> Unit, onMissionSubmitted: () -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var beforeImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -367,11 +380,23 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
                         val beforeBytes = beforeInputStream.use { it.readBytes() }
                         val afterBytes = afterInputStream.use { it.readBytes() }
                         try {
-                            val beforeImageUrl = MissionRepository.uploadMissionProof(userId, beforeBytes, "before")
-                            val afterImageUrl = MissionRepository.uploadMissionProof(userId, afterBytes, "after")
-                            MissionRepository.submitMission(userId, mission.id, beforeImageUrl, afterImageUrl, description, lat, lon, locName)
-                            onMissionSubmitted()
-                            onNext()
+                            val beforeUrl = MissionRepository.uploadMissionProof(userId, beforeBytes, "before")
+                            val afterUrl = MissionRepository.uploadMissionProof(userId, afterBytes, "after")
+                            val insertedSubmission = MissionRepository.submitMission(userId, mission.id, beforeUrl, afterUrl, description, lat, lon, locName)
+                            
+                            if (insertedSubmission != null) {
+                                // 1. AI pipeline
+                                SubmissionVerificationRepository.verifySubmission(insertedSubmission.id, beforeUrl, afterUrl, mission.title)
+                                // 2. Refetch real state
+                                val finalState = SubmissionVerificationRepository.getSubmissionById(insertedSubmission.id) ?: insertedSubmission
+                                
+                                if (finalState.status == "verified") {
+                                    onMissionSubmitted()
+                                }
+                                onNext(finalState)
+                            } else {
+                                android.widget.Toast.makeText(context, "Upload failed to insert", android.widget.Toast.LENGTH_LONG).show()
+                            }
                         } catch (e: Exception) {
                             e.printStackTrace()
                             android.widget.Toast.makeText(context, "Upload failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
@@ -622,7 +647,7 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
 }
 
 @Composable
-private fun PlusSuccessStep(mission: Mission, onCancel: () -> Unit, onMissionSubmitted: () -> Unit = {}) {
+private fun PlusSuccessStep(mission: Mission, submission: Submission, onCancel: () -> Unit, onMissionSubmitted: () -> Unit = {}) {
     // Poll for coin/streak updates while verification is in progress (est. 15 mins)
     LaunchedEffect(Unit) {
         repeat(8) {
@@ -646,19 +671,42 @@ private fun PlusSuccessStep(mission: Mission, onCancel: () -> Unit, onMissionSub
             }
         }
         Spacer(modifier = Modifier.weight(0.3f))
+        val isVerified = submission.status == "verified"
+        val isRejected = submission.status == "rejected"
+        val isPending = submission.status == "pending"
+
+        val iconData = when {
+            isVerified -> Pair(Icons.Default.CheckCircle, MaterialTheme.colorScheme.primary)
+            isRejected -> Pair(Icons.Default.Clear, androidx.compose.ui.graphics.Color.Red)
+            else -> Pair(Icons.Default.Refresh, androidx.compose.ui.graphics.Color(0xFFECA30B))
+        }
+
         Box(
             modifier = Modifier
                 .size(128.dp)
-                .background(MaterialTheme.colorScheme.primary, CircleShape),
+                .background(iconData.second.copy(alpha=0.15f), CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onPrimary)
+            Icon(imageVector = iconData.first, contentDescription = null, modifier = Modifier.size(64.dp), tint = iconData.second)
         }
         Spacer(modifier = Modifier.height(40.dp))
-        Text("Request Sent!", color = MaterialTheme.colorScheme.onBackground, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+        
+        val titleText = when {
+            isVerified -> "Mission verified"
+            isRejected -> "Mission rejected"
+            else -> "Needs manual review"
+        }
+        Text(titleText, color = MaterialTheme.colorScheme.onBackground, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+        
         Spacer(modifier = Modifier.height(16.dp))
+        
+        val descText = when {
+            isVerified -> "Your proof was authentic. You have earned ${mission.gcReward} GreenCoins!"
+            isRejected -> submission.rejectedReason ?: "Your image proof did not match the mission requirements."
+            else -> "AI flagged this for review: ${submission.rejectedReason ?: "Analysis uncertain"}.\nModerators will verify it shortly."
+        }
         Text(
-            "Our AI is verifying your mission proof. You'll receive coins once approved (est. 15 mins).",
+            descText,
             color = AppColors.textSecondary,
             textAlign = TextAlign.Center,
         )
@@ -689,11 +737,11 @@ private fun PlusSuccessStep(mission: Mission, onCancel: () -> Unit, onMissionSub
                 }
                 Box(
                     modifier = Modifier
-                        .background(AppColors.pendingYellowBg, RoundedCornerShape(9999.dp))
-                        .border(1.dp, AppColors.pendingYellowBorder, RoundedCornerShape(9999.dp))
+                        .background(iconData.second.copy(alpha=0.15f), RoundedCornerShape(9999.dp))
+                        .border(1.dp, iconData.second, RoundedCornerShape(9999.dp))
                         .padding(horizontal = 12.dp, vertical = 4.dp),
                 ) {
-                    Text("PENDING", color = AppColors.pendingYellow, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(submission.status.uppercase(), color = iconData.second, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

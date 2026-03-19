@@ -68,7 +68,16 @@ data class Submission(
     @SerialName("user_id") val userId: String,
     @SerialName("mission_id") val missionId: String,
     @SerialName("image_url") val imageUrl: String? = null,
+    @SerialName("before_image_url") val beforeImageUrl: String? = null,
+    @SerialName("after_image_url") val afterImageUrl: String? = null,
     val status: String = "pending",
+    @SerialName("rejected_reason") val rejectedReason: String? = null,
+    @SerialName("verified_at") val verifiedAt: String? = null,
+    @SerialName("completed_at") val completedAt: String? = null,
+    val description: String? = null,
+    @SerialName("location_name") val locationName: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
     @SerialName("created_at") val createdAt: String? = null
 )
 
