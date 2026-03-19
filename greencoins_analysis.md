@@ -1,4 +1,4 @@
-# GreenCoins Codebase Analysis
+# GreenCoins Project Codebase Analysis
 
 ## 1. Project Overview
 **GreenCoins** is an Android application designed to incentivize and reward users for environmental actions (such as planting trees or recycling). Users complete missions, upload proof, and earn "GreenCoins" (GC) which they can redeem in a virtual shop for real-world discounts and eco-friendly items.

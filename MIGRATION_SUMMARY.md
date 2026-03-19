@@ -1,4 +1,4 @@
-# GreenCoins Database Migration Summary
+# GreenCoins App Database Migration Summary
 
 ## Overview
 

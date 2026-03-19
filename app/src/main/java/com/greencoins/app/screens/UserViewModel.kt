@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
- * Shared state for the currently logged-in user's header GC.
+ * Shared state for the currently logged-in user's header GC balance.
  * Observes auth changes and refreshes when user changes or when refresh() is called.
  */
 class UserViewModel : ViewModel() {

@@ -1,3 +1,4 @@
+// ImpactRepository handles database operations for user statistics and completed missions.
 package com.greencoins.app.data
 
 import io.github.jan.supabase.postgrest.from
