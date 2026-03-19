@@ -63,7 +63,7 @@ fun ShopScreen(
         columns = GridCells.Fixed(2),
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 12.dp, bottom = 96.dp, start = 24.dp, end = 24.dp),
+            .padding(bottom = 96.dp, start = 24.dp, end = 24.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(bottom = 16.dp),
@@ -72,7 +72,7 @@ fun ShopScreen(
             FeaturedRewardCard(onRedeemClick = { onCategoryClick("Travel") })
         }
         item(span = { GridItemSpan(2) }) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
         items(categories) { category ->
             CategoryCard(
@@ -81,7 +81,7 @@ fun ShopScreen(
             )
         }
         item(span = { GridItemSpan(2) }) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
         item(span = { GridItemSpan(2) }) {
             Text("Popular Rewards", color = MaterialTheme.colorScheme.onBackground, fontSize = 16.sp, fontWeight = FontWeight.Bold)

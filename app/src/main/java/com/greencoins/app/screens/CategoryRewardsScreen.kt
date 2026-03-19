@@ -16,11 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -79,36 +75,14 @@ fun CategoryRewardsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorScheme.background),
+            .padding(horizontal = 16.dp),
     ) {
-        // Top bar with back button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 48.dp, start = 8.dp, end = 24.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = colorScheme.onSurface,
-                )
-            }
-            Text(
-                "Shop",
-                color = AppColors.white,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-
         // Horizontal category selector
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 8.dp),
+                .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             categories.forEach { category ->
@@ -132,12 +106,14 @@ fun CategoryRewardsScreen(
             }
         }
 
+        Spacer(modifier = Modifier.height(12.dp))
+
         // Vertical list of rewards
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 24.dp, top = 16.dp, end = 24.dp, bottom = 96.dp),
+                .padding(bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (isLoading) {
