@@ -60,7 +60,7 @@ fun PersonalInformationScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.bg),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         Row(
             modifier = Modifier
@@ -69,7 +69,7 @@ fun PersonalInformationScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
-            Text("Personal Information", color = AppColors.white, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("Personal Information", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
 
         Column(
@@ -86,8 +86,8 @@ fun PersonalInformationScreen(
                 label = { Text("Name", color = AppColors.textSecondary) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = AppColors.white,
-                    unfocusedTextColor = AppColors.white,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     disabledTextColor = AppColors.textSecondary,
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = AppColors.border,
@@ -121,8 +121,8 @@ fun PersonalInformationScreen(
                 label = { Text("Phone (optional)", color = AppColors.textSecondary) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = AppColors.white,
-                    unfocusedTextColor = AppColors.white,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     disabledTextColor = AppColors.textSecondary,
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = AppColors.border,
@@ -139,8 +139,8 @@ fun PersonalInformationScreen(
                 label = { Text("City / Location (optional)", color = AppColors.textSecondary) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = AppColors.white,
-                    unfocusedTextColor = AppColors.white,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     disabledTextColor = AppColors.textSecondary,
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = AppColors.border,
@@ -162,7 +162,7 @@ fun PersonalInformationScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = AppColors.black),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
                     shape = RoundedCornerShape(16.dp),
                 ) {
                     Text(if (isSaving) "Saving..." else "Save", fontWeight = FontWeight.Bold)
@@ -171,7 +171,7 @@ fun PersonalInformationScreen(
                 Button(
                     onClick = { isEditing = true },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = AppColors.black),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
                     shape = RoundedCornerShape(16.dp),
                 ) {
                     Text("Edit", fontWeight = FontWeight.Bold)

@@ -48,7 +48,7 @@ fun ImpactStatisticsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.bg),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         Row(
             modifier = Modifier
@@ -57,7 +57,7 @@ fun ImpactStatisticsScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
-            Text("Impact Statistics", color = AppColors.white, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("Impact Statistics", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
 
         Column(
@@ -94,7 +94,7 @@ fun ImpactStatisticsScreen(
                                     Spacer(modifier = Modifier.size(12.dp))
                                 }
                                 Column {
-                                    Text(item.missionTitle, color = AppColors.white, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                    Text(item.missionTitle, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                                     Text(
                                         item.dateCompleted?.take(10) ?: "-",
                                         color = AppColors.textSecondary,
@@ -128,7 +128,7 @@ fun ImpactStatisticsScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             Column {
-                                Text(item.challengeName, color = AppColors.white, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                Text(item.challengeName, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                                 Text(
                                     item.joinedDate?.take(10) ?: "Participated",
                                     color = AppColors.textSecondary,

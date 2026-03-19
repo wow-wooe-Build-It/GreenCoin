@@ -5,12 +5,21 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.rpc
+import kotlinx.serialization.SerialName
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Serializable
 private data class StreakRow(val streak: Int = 0)
+
+@Serializable
+data class LevelData(
+    @SerialName("level_number") val levelNumber: Int,
+    val title: String,
+    @SerialName("missions_required") val missionsRequired: Int,
+    @SerialName("coin_reward") val coinReward: Int
+)
 
 object UserRepository {
     private val client = SupabaseManager.client
@@ -97,6 +106,16 @@ object UserRepository {
         } catch (e: Exception) {
             e.printStackTrace()
             false
+        }
+    }
+
+    /** Fetch all rank thresholds directly from the levels lookup table */
+    suspend fun getLevels(): List<LevelData> = withContext(Dispatchers.IO) {
+        try {
+            client.from("levels").select().decodeList<LevelData>().sortedBy { it.levelNumber }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
         }
     }
 }

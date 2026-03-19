@@ -68,6 +68,7 @@ import com.greencoins.app.ui.toImageVector
 import com.greencoins.app.data.UserRepository
 import com.greencoins.app.data.UserProfile
 import com.greencoins.app.data.AuthRepository
+import com.greencoins.app.data.LevelData
 
 @Composable
 fun HomeScreen(
@@ -81,11 +82,13 @@ fun HomeScreen(
     var userProfile by remember { mutableStateOf<UserProfile?>(null) }
     var weeklyStreak by remember { mutableStateOf<List<Boolean>>(emptyList()) }
     var calculatedStreak by remember { mutableStateOf(0) }
+    var levelsTable by remember { mutableStateOf<List<LevelData>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         val user = AuthRepository.currentUser
         missions = MissionRepository.getMissions()
         challenges = ChallengeRepository.getChallenges()
+        levelsTable = UserRepository.getLevels()
         if (user != null) {
             userProfile = UserRepository.getProfile(user.id)
             weeklyStreak = UserRepository.getWeeklyStreak(user.id)
@@ -107,7 +110,8 @@ fun HomeScreen(
             streakDays = calculatedStreak,
             userLevel = userProfile?.level ?: 1,
             missionsCompleted = userProfile?.missionsCompleted ?: 0,
-            weeklyProgress = if (weeklyStreak.size == 7) weeklyStreak else listOf(false, false, false, false, false, false, false)
+            weeklyProgress = if (weeklyStreak.size == 7) weeklyStreak else listOf(false, false, false, false, false, false, false),
+            levelsTable = levelsTable
         )
         Spacer(modifier = Modifier.height(40.dp))
         // Daily Missions
@@ -354,30 +358,77 @@ fun StreakProgressCard(
     streakDays: Int = 0,
     userLevel: Int = 1,
     missionsCompleted: Int = 0,
-    weeklyProgress: List<Boolean> = listOf(false, false, false, false, false, false, false)
+    weeklyProgress: List<Boolean> = listOf(false, false, false, false, false, false, false),
+    levelsTable: List<LevelData> = emptyList()
 ) {
     val cardBg = themeCardBgColor()
     val textColor = themeOnSurfaceTextColor()
     val textSecondaryColor = themeOnSurfaceVariantTextColor()
     val mutedBg = themeMutedBgColor()
     val iconBg = themeIconBgColor()
-    val missionsRequiredForNextLevel = 20
-    val levelTitles = mapOf(
-        1 to "Seed",
-        2 to "Sprout",
-        3 to "Eco Explorer",
-        4 to "Green Guardian",
-        5 to "Earth Champion",
+
+    val levelData = listOf(
+        Pair(0, "Seed"),                 // Level 1: 0-9
+        Pair(10, "Sprout"),              // Level 2: 10-24
+        Pair(25, "Eco Explorer"),        // Level 3: 25-49
+        Pair(50, "Green Guardian"),      // Level 4: 50-99
+        Pair(100, "Earth Champion"),     // Level 5: 100-199
+        Pair(200, "Sustainability Master"), // Level 6: 200-349
+        Pair(350, "Climate Hero"),       // Level 7: 350-549
+        Pair(550, "Nature's Steward"),   // Level 8: 550-799
+        Pair(800, "Planet Protector"),   // Level 9: 800-1099
+        Pair(1100, "Eco Legend")         // Level 10: 1100+
     )
+    
+    // Find effective level based on actual missionsCompleted
+    var effectiveLevel = 1
+    var effectiveTitle = "Seed"
+    var currentTierStart = 0
+    var nextTierTarget = 10
+    
+    if (levelsTable.isNotEmpty()) {
+        for (i in levelsTable.indices) {
+            val lvl = levelsTable[i]
+            if (missionsCompleted >= lvl.missionsRequired) {
+                effectiveLevel = lvl.levelNumber
+                effectiveTitle = lvl.title
+                currentTierStart = lvl.missionsRequired
+                if (i + 1 < levelsTable.size) {
+                    nextTierTarget = levelsTable[i + 1].missionsRequired
+                } else {
+                    nextTierTarget = lvl.missionsRequired // Max level
+                }
+            } else {
+                break
+            }
+        }
+    } else {
+        for (i in levelData.indices) {
+            if (missionsCompleted >= levelData[i].first) {
+                effectiveLevel = i + 1
+                effectiveTitle = levelData[i].second
+                currentTierStart = levelData[i].first
+                if (i + 1 < levelData.size) {
+                    nextTierTarget = levelData[i + 1].first
+                } else {
+                    nextTierTarget = levelData[i].first // Max level
+                }
+            } else {
+                break
+            }
+        }
+    }
+
     val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
     // Calendar: Sunday=1, Monday=2, ... Saturday=7. Map to Mon=0..Sun=6.
     val currentDayIndex = ((java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK) + 5) % 7)
 
-    val rawProgress = if (missionsRequiredForNextLevel > 0) {
-        missionsCompleted / missionsRequiredForNextLevel.toFloat()
+    val rawProgress = if (effectiveLevel == 10) {
+        1f
     } else {
-        0f
+        (missionsCompleted - currentTierStart).toFloat() / (nextTierTarget - currentTierStart).toFloat()
     }
+    
     val animatedProgress by animateFloatAsState(
         targetValue = rawProgress.coerceIn(0f, 1f),
         animationSpec = tween(durationMillis = 700, easing = FastOutSlowInEasing),
@@ -519,21 +570,21 @@ fun StreakProgressCard(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
-                text = "LEVEL $userLevel",
+                text = "LEVEL $effectiveLevel",
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
             )
 
             Text(
-                text = levelTitles[userLevel] ?: "Eco Hero",
+                text = effectiveTitle,
                 color = textColor,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
             )
 
             Text(
-                text = "$missionsCompleted / $missionsRequiredForNextLevel missions",
+                text = if (effectiveLevel == 10) "$missionsCompleted missions (Max Level)" else "$missionsCompleted / $nextTierTarget missions",
                 color = textSecondaryColor,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
