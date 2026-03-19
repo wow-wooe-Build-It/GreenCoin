@@ -89,4 +89,7 @@ dependencies {
 
     // DataStore for theme persistence
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Location Tracking
+    implementation("com.google.android.gms:play-services-location:21.2.0")
 }
