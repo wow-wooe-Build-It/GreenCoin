@@ -78,12 +78,20 @@ data class Reward(
     val title: String,
     val description: String? = null,
     val category: String,
-    @SerialName("gc_cost") val gcCost: Int,
+    @SerialName("gc_cost") val gcCost: Int = 0,
+    @SerialName("cash_price_paise") val cashPricePaise: Long = 0L,
+    @SerialName("rupee_cost") val rupeeCost: Int? = null,
+    @SerialName("gc_price") val gcPrice: Int = 0,
+    val currency: String = "INR",
+    @SerialName("requires_payment") val requiresPayment: Boolean = false,
     @SerialName("image_url") val imageUrl: String? = null,
     @SerialName("discount_label") val discountLabel: String? = null,
     val stock: Int = -1,
     @SerialName("is_active") val isActive: Boolean = true,
-)
+) {
+    val actualCashPricePaise: Long
+        get() = if (rupeeCost != null && rupeeCost > 0) (rupeeCost * 100L) else cashPricePaise
+}
 
 @Serializable
 data class Transaction(

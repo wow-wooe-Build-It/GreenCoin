@@ -69,7 +69,11 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:storage-kt")
     implementation("io.github.jan-tennert.supabase:realtime-kt")
+    implementation("io.github.jan-tennert.supabase:functions-kt")
     implementation("io.ktor:ktor-client-android:3.0.0")
+    
+    // Razorpay Integration
+    implementation("com.razorpay:checkout:1.6.38")
     
     // Security
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
@@ -85,4 +89,7 @@ dependencies {
 
     // DataStore for theme persistence
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Location Tracking
+    implementation("com.google.android.gms:play-services-location:21.2.0")
 }

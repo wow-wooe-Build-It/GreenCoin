@@ -65,7 +65,7 @@ fun RedemptionHistoryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.bg),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         Row(
             modifier = Modifier
@@ -74,7 +74,7 @@ fun RedemptionHistoryScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
-            Text("Redemption History", color = AppColors.white, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("Redemption History", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
 
         Column(
@@ -119,7 +119,7 @@ fun RedemptionHistoryScreen(
                                     fontWeight = FontWeight.Bold,
                                 )
                             }
-                            Text(desc, color = AppColors.white, fontSize = 13.sp)
+                            Text(desc, color = MaterialTheme.colorScheme.onSurface, fontSize = 13.sp)
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(dateStr, color = AppColors.textSecondary, fontSize = 11.sp)
                         }

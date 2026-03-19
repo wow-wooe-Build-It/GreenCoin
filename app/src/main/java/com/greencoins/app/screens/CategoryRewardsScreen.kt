@@ -42,6 +42,12 @@ import com.greencoins.app.theme.AppColors
 import com.greencoins.app.components.ImageWithFallback
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import android.app.Activity
+import android.widget.Toast
+import com.greencoins.app.RazorpayController
+import com.razorpay.Checkout
+import org.json.JSONObject
 import kotlinx.coroutines.launch
 
 @Composable
@@ -139,23 +145,78 @@ fun CategoryRewardsScreen(
                      CircularProgressIndicator()
                  }
             } else {
+                val context = LocalContext.current
+                val activity = context as? Activity
                 rewards.forEach { reward ->
-                    val canRedeem = reward.id !in redeemedIds && userBalance >= reward.gcCost
+                    val actualGcCost = if (reward.gcPrice > 0) reward.gcPrice else reward.gcCost
+                    val canRedeem = reward.id !in redeemedIds && userBalance >= actualGcCost
                     RewardCard(
                         reward = reward,
                         isRedeemed = reward.id in redeemedIds,
                         canRedeem = canRedeem,
                         onRedeem = {
-                            scope.launch {
-                                // Call repository to redeem
-                                val success = ShopRepository.redeemReward(
-                                    userId = AuthRepository.currentUser?.id ?: "",
-                                    rewardId = reward.id,
-                                    cost = reward.gcCost
-                                )
-                                if (success) {
-                                    redeemedIds = redeemedIds + reward.id
-                                    onRedeem(reward)
+                            if (reward.actualCashPricePaise > 0) {
+                                // Hybrid flow
+                                isLoading = true
+                                scope.launch {
+                                    val orderInfo = ShopRepository.createHybridOrder(reward.id)
+                                    if (orderInfo != null && orderInfo.razorpayOrderId != null) {
+                                        RazorpayController.currentAppOrderId = orderInfo.appOrderId
+                                        RazorpayController.paymentCallback = { appOrderId, paymentId, rzOrderId, signature, error -> 
+                                            if (error == null && paymentId != null && signature != null && rzOrderId != null) {
+                                                scope.launch {
+                                                    val success = ShopRepository.verifyHybridPayment(
+                                                        appOrderId, paymentId, rzOrderId, signature
+                                                    )
+                                                    if (success) {
+                                                        redeemedIds = redeemedIds + reward.id
+                                                        onRedeem(reward)
+                                                    } else {
+                                                        Toast.makeText(context, "Payment verification failed server-side.", Toast.LENGTH_LONG).show()
+                                                    }
+                                                    isLoading = false
+                                                }
+                                            } else {
+                                                isLoading = false
+                                                Toast.makeText(context, "Payment Failed: $error", Toast.LENGTH_LONG).show()
+                                            }
+                                        }
+
+                                        // Launch razorpay
+                                        val checkout = Checkout()
+                                        checkout.setKeyID(orderInfo.keyId)
+                                        try {
+                                            val options = JSONObject()
+                                            options.put("name", "GreenCoins")
+                                            options.put("description", orderInfo.rewardTitle ?: reward.title)
+                                            options.put("image", "https://s3.amazonaws.com/rzp-mobile/images/rzp.jpg")
+                                            options.put("currency", orderInfo.currency)
+                                            options.put("order_id", orderInfo.razorpayOrderId)
+                                            options.put("amount", orderInfo.amount)
+
+                                            checkout.open(activity, options)
+                                        } catch (e: Exception) {
+                                            isLoading = false
+                                            e.printStackTrace()
+                                            Toast.makeText(context, "Failed to open Checkout", Toast.LENGTH_LONG).show()
+                                        }
+                                    } else {
+                                        isLoading = false
+                                        Toast.makeText(context, orderInfo?.message ?: "Failed to create order on server.", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            } else {
+                                // Pure GC Flow uses the same Edge Function but it auto-completes
+                                isLoading = true
+                                scope.launch {
+                                    val orderInfo = ShopRepository.createHybridOrder(reward.id)
+                                    isLoading = false
+                                    if (orderInfo?.success == true) {
+                                        redeemedIds = redeemedIds + reward.id
+                                        onRedeem(reward)
+                                    } else {
+                                        Toast.makeText(context, orderInfo?.message ?: "Failed to redeem reward.", Toast.LENGTH_LONG).show()
+                                    }
                                 }
                             }
                         },
@@ -206,6 +267,15 @@ private fun RewardCard(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        val actualGcCost = if (reward.gcPrice > 0) reward.gcPrice else reward.gcCost
+                        if (reward.actualCashPricePaise > 0) {
+                            Text(
+                                text = "Rs ${reward.actualCashPricePaise / 100} + ",
+                                color = colorScheme.onSurface,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
                         Box(
                             modifier = Modifier
                                 .size(10.dp)
@@ -213,7 +283,7 @@ private fun RewardCard(
                         )
                         Spacer(modifier = Modifier.size(6.dp))
                         Text(
-                            text = "${reward.gcCost} GC",
+                            text = "$actualGcCost GC",
                             color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,

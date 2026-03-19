@@ -45,7 +45,16 @@ object MissionRepository {
 
 
     // Submit a proof (Create submission)
-    suspend fun submitMission(userId: String, missionId: String, beforeImageUrl: String?, afterImageUrl: String?, description: String?) = withContext(Dispatchers.IO) {
+    suspend fun submitMission(
+        userId: String, 
+        missionId: String, 
+        beforeImageUrl: String?, 
+        afterImageUrl: String?, 
+        description: String?,
+        latitude: Double? = null,
+        longitude: Double? = null,
+        locationName: String? = null
+    ) = withContext(Dispatchers.IO) {
         val submissionJson = buildJsonObject {
             put("user_id", userId)
             put("mission_id", missionId)
@@ -53,6 +62,9 @@ object MissionRepository {
             put("after_image_url", afterImageUrl)
             put("image_url", afterImageUrl) // Keep for backward compatibility
             put("description", description)
+            put("latitude", latitude)
+            put("longitude", longitude)
+            put("location_name", locationName)
             put("status", "pending")
         }
         

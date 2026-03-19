@@ -59,7 +59,7 @@ fun HelpSupportScreen(onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.bg),
+            .background(MaterialTheme.colorScheme.background),
     ) {
         Row(
             modifier = Modifier
@@ -68,7 +68,7 @@ fun HelpSupportScreen(onBack: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
         ) {
-            Text("Help & Support", color = AppColors.white, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("Help & Support", color = MaterialTheme.colorScheme.onBackground, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
 
         Column(

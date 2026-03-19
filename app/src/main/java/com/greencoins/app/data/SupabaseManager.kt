@@ -11,6 +11,7 @@ import io.github.jan.supabase.auth.handleDeeplinks
 import io.github.jan.supabase.auth.user.UserSession
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.functions.Functions
 import kotlinx.serialization.encodeToString
 import io.github.jan.supabase.storage.Storage
 import kotlinx.serialization.json.Json
@@ -61,6 +62,7 @@ object SupabaseManager {
             }
             install(Storage)
             install(Postgrest)
+            install(Functions)
         }
     }
 
