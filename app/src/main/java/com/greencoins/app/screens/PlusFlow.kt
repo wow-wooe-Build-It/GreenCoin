@@ -1,9 +1,13 @@
 package com.greencoins.app.screens
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Geocoder
 import android.net.Uri
-import androidx.exifinterface.media.ExifInterface
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.core.content.ContextCompat
+import androidx.exifinterface.media.ExifInterface
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -60,6 +64,8 @@ import com.greencoins.app.components.GlassCard
 import com.greencoins.app.data.AuthRepository
 import com.greencoins.app.data.Mission
 import com.greencoins.app.data.MissionRepository
+import com.google.android.gms.location.LocationServices
+import java.util.Locale
 import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import com.greencoins.app.ui.toImageVector
@@ -348,6 +354,103 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
     var isSubmitting by remember { mutableStateOf(false) }
     var pendingImageSlot by remember { mutableStateOf<Boolean?>(null) } // true = before, false = after
 
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    val submitMissionData = { lat: Double?, lon: Double?, locName: String? ->
+        scope.launch {
+            try {
+                val userId = AuthRepository.currentUser?.id
+                if (userId != null && beforeImageUri != null && afterImageUri != null) {
+                    val beforeInputStream = context.contentResolver.openInputStream(beforeImageUri!!)
+                    val afterInputStream = context.contentResolver.openInputStream(afterImageUri!!)
+                    if (beforeInputStream != null && afterInputStream != null) {
+                        val beforeBytes = beforeInputStream.use { it.readBytes() }
+                        val afterBytes = afterInputStream.use { it.readBytes() }
+                        try {
+                            val beforeImageUrl = MissionRepository.uploadMissionProof(userId, beforeBytes, "before")
+                            val afterImageUrl = MissionRepository.uploadMissionProof(userId, afterBytes, "after")
+                            MissionRepository.submitMission(userId, mission.id, beforeImageUrl, afterImageUrl, description, lat, lon, locName)
+                            onMissionSubmitted()
+                            onNext()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            android.widget.Toast.makeText(context, "Upload failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        android.widget.Toast.makeText(context, "Could not read image(s)", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    if (userId == null) {
+                        android.widget.Toast.makeText(context, "User not logged in", android.widget.Toast.LENGTH_SHORT).show()
+                    } else {
+                        android.widget.Toast.makeText(context, "Please select both Before and After images", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch(e: Exception) {
+                e.printStackTrace()
+                android.widget.Toast.makeText(context, "Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+            } finally {
+                isSubmitting = false
+            }
+        }
+    }
+
+    fun fetchLocationAndSubmit() {
+        try {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    var locationName: String? = null
+                    try {
+                        val geocoder = Geocoder(context, Locale.getDefault())
+                        val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                        if (!addresses.isNullOrEmpty()) {
+                            val addr = addresses[0]
+                            locationName = listOfNotNull(addr.subLocality, addr.locality, addr.adminArea).filter { it.isNotBlank() }.joinToString(", ")
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    submitMissionData(location.latitude, location.longitude, locationName)
+                } else {
+                    isSubmitting = false
+                    android.widget.Toast.makeText(context, "Could not acquire GPS location. Please ensure location services are enabled.", android.widget.Toast.LENGTH_LONG).show()
+                }
+            }.addOnFailureListener {
+                isSubmitting = false
+                android.widget.Toast.makeText(context, "Failed to get location: ${it.message}", android.widget.Toast.LENGTH_LONG).show()
+            }
+        } catch (e: SecurityException) {
+            isSubmitting = false
+            android.widget.Toast.makeText(context, "Location permission is required", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || 
+                      permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (granted) {
+            fetchLocationAndSubmit()
+        } else {
+            isSubmitting = false
+            android.widget.Toast.makeText(context, "Location permission is strictly required to verify missions.", android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+
+    val onSubmitClicked = {
+        if (!isSubmitting) {
+            isSubmitting = true
+            val hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            val hasCoarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            if (hasFine || hasCoarse) {
+                fetchLocationAndSubmit()
+            } else {
+                permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+            }
+        }
+    }
+
     val mediaLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         when (pendingImageSlot) {
             true -> if (uri != null) {
@@ -503,46 +606,7 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
 
         Spacer(modifier = Modifier.height(24.dp))
         Button(
-            onClick = {
-                if (isSubmitting) return@Button
-                scope.launch {
-                    isSubmitting = true
-                    try {
-                        val userId = AuthRepository.currentUser?.id
-                        if (userId != null && beforeImageUri != null && afterImageUri != null) {
-                            val beforeInputStream = context.contentResolver.openInputStream(beforeImageUri!!)
-                            val afterInputStream = context.contentResolver.openInputStream(afterImageUri!!)
-                            if (beforeInputStream != null && afterInputStream != null) {
-                                val beforeBytes = beforeInputStream.use { it.readBytes() }
-                                val afterBytes = afterInputStream.use { it.readBytes() }
-                                try {
-                                    val beforeImageUrl = MissionRepository.uploadMissionProof(userId, beforeBytes, "before")
-                                    val afterImageUrl = MissionRepository.uploadMissionProof(userId, afterBytes, "after")
-                                    MissionRepository.submitMission(userId, mission.id, beforeImageUrl, afterImageUrl, description)
-                                    onMissionSubmitted()
-                                    onNext()
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                    android.widget.Toast.makeText(context, "Upload failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
-                                }
-                            } else {
-                                android.widget.Toast.makeText(context, "Could not read image(s)", android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                        } else {
-                            if (userId == null) {
-                                android.widget.Toast.makeText(context, "User not logged in", android.widget.Toast.LENGTH_SHORT).show()
-                            } else {
-                                android.widget.Toast.makeText(context, "Please select both Before and After images", android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    } catch(e: Exception) {
-                        e.printStackTrace()
-                        android.widget.Toast.makeText(context, "Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
-                    } finally {
-                        isSubmitting = false
-                    }
-                }
-            },
+            onClick = { onSubmitClicked() },
             modifier = Modifier.fillMaxWidth().height(64.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
             shape = RoundedCornerShape(24.dp),
