@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -65,6 +66,8 @@ fun ProfileScreen(
     onShowImpactStatisticsChange: (Boolean) -> Unit = {},
     showRedemptionHistory: Boolean = false,
     onShowRedemptionHistoryChange: (Boolean) -> Unit = {},
+    showMyRewards: Boolean = false,
+    onShowMyRewardsChange: (Boolean) -> Unit = {},
 ) {
     var user by remember { mutableStateOf<io.github.jan.supabase.auth.user.UserInfo?>(null) }
     var userProfile by remember { mutableStateOf<com.greencoins.app.data.UserProfile?>(null) }
@@ -98,10 +101,11 @@ fun ProfileScreen(
         }
     }
 
-    BackHandler(enabled = showImpactStatistics || showRedemptionHistory || showPersonalInfo) {
+    BackHandler(enabled = showImpactStatistics || showRedemptionHistory || showPersonalInfo || showMyRewards) {
         onShowImpactStatisticsChange(false)
         onShowRedemptionHistoryChange(false)
         onShowPersonalInfoChange(false)
+        onShowMyRewardsChange(false)
     }
 
     if (showImpactStatistics && user != null) {
@@ -110,6 +114,10 @@ fun ProfileScreen(
     }
     if (showRedemptionHistory && user != null) {
         RedemptionHistoryScreen(userId = user!!.id, onBack = { onShowRedemptionHistoryChange(false) })
+        return
+    }
+    if (showMyRewards && user != null) {
+        MyRewardsScreen(onBack = { onShowMyRewardsChange(false) })
         return
     }
     if (showPersonalInfo && user != null) {
@@ -221,6 +229,7 @@ fun ProfileScreen(
         listOf(
             Triple(Icons.Default.Person, "Personal Information", { onShowPersonalInfoChange(true) }),
             Triple(Icons.Default.Star, "Impact Statistics", { onShowImpactStatisticsChange(true) }),
+            Triple(Icons.Default.CardGiftcard, "My Rewards", { onShowMyRewardsChange(true) }),
             Triple(Icons.Default.ShoppingBag, "Redemption History", { onShowRedemptionHistoryChange(true) }),
         ).forEach { (icon, label, onClickAction) ->
             Row(

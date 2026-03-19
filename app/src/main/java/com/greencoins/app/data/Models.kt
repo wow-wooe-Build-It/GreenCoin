@@ -68,8 +68,17 @@ data class Submission(
     @SerialName("user_id") val userId: String,
     @SerialName("mission_id") val missionId: String,
     @SerialName("image_url") val imageUrl: String? = null,
+    @SerialName("before_image_url") val beforeImageUrl: String? = null,
+    @SerialName("after_image_url") val afterImageUrl: String? = null,
+    val description: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    @SerialName("location_name") val locationName: String? = null,
     val status: String = "pending",
-    @SerialName("created_at") val createdAt: String? = null
+    @SerialName("rejected_reason") val rejectedReason: String? = null,
+    @SerialName("created_at") val createdAt: String? = null,
+    @SerialName("verified_at") val verifiedAt: String? = null,
+    @SerialName("completed_at") val completedAt: String? = null
 )
 
 @Serializable
@@ -158,3 +167,37 @@ object ChallengeDetailRepository {
         )
     )
 }
+
+@Serializable
+data class CouponCampaign(
+    val id: String,
+    val title: String,
+    @SerialName("brand_name") val brandName: String,
+    val description: String? = null,
+    val terms: String? = null,
+    @SerialName("image_url") val imageUrl: String? = null,
+    @SerialName("accent_color") val accentColor: String = "#FF0000",
+    @SerialName("reward_type") val rewardType: String = "scratch_coupon",
+    @SerialName("expires_at") val expiresAt: String? = null
+)
+
+@Serializable
+data class CouponInventory(
+    val id: String,
+    @SerialName("campaign_id") val campaignId: String,
+    @SerialName("coupon_code") val couponCode: String,
+    @SerialName("is_assigned") val isAssigned: Boolean = false
+)
+
+@Serializable
+data class UserCoupon(
+    val id: String,
+    @SerialName("user_id") val userId: String,
+    @SerialName("campaign_id") val campaignId: String,
+    @SerialName("inventory_id") val inventoryId: String,
+    val status: String,
+    @SerialName("assigned_at") val assignedAt: String,
+    @SerialName("scratched_at") val scratchedAt: String? = null,
+    val campaign: CouponCampaign? = null,
+    val inventory: CouponInventory? = null
+)
