@@ -176,6 +176,75 @@ drop policy if exists "Users can create submissions" on public.submissions;
 create policy "Users can create submissions"
   on public.submissions for insert with check ( auth.uid() = user_id );
 
+-- Community Verification: authenticated users can read all submissions for peer review (OR with own-submission policy)
+drop policy if exists "Authenticated users can read submissions for community verification" on public.submissions;
+create policy "Authenticated users can read submissions for community verification"
+  on public.submissions for select
+  to authenticated
+  using ( true );
+
+-- Display names on comments (OR with "Users can read own profile")
+drop policy if exists "Authenticated users can read profiles for community" on public.users;
+create policy "Authenticated users can read profiles for community"
+  on public.users for select
+  to authenticated
+  using ( true );
+
+-- VOTES: one row per user per submission; change vote_type to switch up/down
+create table if not exists public.votes (
+  id uuid default gen_random_uuid() primary key,
+  submission_id uuid not null references public.submissions(id) on delete cascade,
+  user_id uuid not null references public.users(id) on delete cascade,
+  vote_type text not null check (vote_type in ('upvote', 'downvote')),
+  created_at timestamptz default now(),
+  unique (submission_id, user_id)
+);
+
+alter table public.votes enable row level security;
+
+drop policy if exists "Authenticated users can read votes" on public.votes;
+create policy "Authenticated users can read votes"
+  on public.votes for select
+  to authenticated
+  using ( true );
+
+drop policy if exists "Users can insert own vote" on public.votes;
+create policy "Users can insert own vote"
+  on public.votes for insert
+  with check ( auth.uid() = user_id );
+
+drop policy if exists "Users can update own vote" on public.votes;
+create policy "Users can update own vote"
+  on public.votes for update
+  using ( auth.uid() = user_id );
+
+-- COMMENTS on submissions (content = comment body)
+create table if not exists public.comments (
+  id uuid default gen_random_uuid() primary key,
+  submission_id uuid not null references public.submissions(id) on delete cascade,
+  user_id uuid not null references public.users(id) on delete cascade,
+  content text not null,
+  created_at timestamptz default now()
+);
+
+alter table public.comments enable row level security;
+
+drop policy if exists "Authenticated users can read comments" on public.comments;
+create policy "Authenticated users can read comments"
+  on public.comments for select
+  to authenticated
+  using ( true );
+
+drop policy if exists "Users can insert own comments" on public.comments;
+create policy "Users can insert own comments"
+  on public.comments for insert
+  with check ( auth.uid() = user_id );
+
+drop policy if exists "Users can delete own comments" on public.comments;
+create policy "Users can delete own comments"
+  on public.comments for delete
+  using ( auth.uid() = user_id );
+
 
 -- 6. REWARDS TABLE (SHOP)
 create table if not exists public.rewards (

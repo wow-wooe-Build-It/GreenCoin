@@ -168,7 +168,8 @@ fun CommunityScreen(
                                 }
                                 Spacer(modifier = Modifier.weight(1f))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    val userVote = sub.votesBy.values.firstOrNull()
+                                    val uid = AuthRepository.currentUser?.id
+                                    val userVote = uid?.let { sub.votesBy[it] }
                                     Icon(
                                         Icons.Filled.ThumbUp,
                                         contentDescription = "Upvote",
