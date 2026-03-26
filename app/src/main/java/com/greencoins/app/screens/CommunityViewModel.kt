@@ -1,20 +1,21 @@
 package com.greencoins.app.screens
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.greencoins.app.data.AuthRepository
 import com.greencoins.app.data.CommunityRepository
 import com.greencoins.app.data.CommunitySubmission
-import com.greencoins.app.data.CommunitySubmissionDto
 import com.greencoins.app.data.Comment
-import com.greencoins.app.data.CommentDto
-import com.greencoins.app.data.VoteCounts
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class CommunityViewModel : ViewModel() {
+    private companion object {
+        private const val TAG = "CommunityViewModel"
+    }
     private val _submissions = MutableStateFlow<List<CommunitySubmission>>(emptyList())
     val submissions: StateFlow<List<CommunitySubmission>> = _submissions.asStateFlow()
 
@@ -31,9 +32,35 @@ class CommunityViewModel : ViewModel() {
     fun vote(submissionId: String, type: String) {
         val userId = AuthRepository.currentUser?.id ?: return
         viewModelScope.launch {
-            CommunityRepository.vote(submissionId, userId, type)
+            val snapshot = _submissions.value
+            _submissions.value = snapshot.map { applyVoteOptimistic(it, submissionId, userId, type) }
+            val ok = CommunityRepository.submitVote(submissionId, userId, type)
+            if (!ok) _submissions.value = snapshot
             refreshSubmissions()
         }
+    }
+
+    private fun applyVoteOptimistic(
+        s: CommunitySubmission,
+        submissionId: String,
+        userId: String,
+        type: String,
+    ): CommunitySubmission {
+        if (s.id != submissionId) return s
+        val oldVote = s.votesBy[userId]
+        var up = s.upvotesOverride ?: s.upvotes
+        var down = s.downvotesOverride ?: s.downvotes
+        if (oldVote == "upvote") up--
+        if (oldVote == "downvote") down--
+        when (type) {
+            "upvote" -> up++
+            "downvote" -> down++
+        }
+        return s.copy(
+            votesBy = mapOf(userId to type),
+            upvotesOverride = up,
+            downvotesOverride = down,
+        )
     }
 
     fun addComment(submissionId: String, text: String) {
@@ -47,16 +74,27 @@ class CommunityViewModel : ViewModel() {
     }
 
     fun refreshSubmissions() {
-        val userId = AuthRepository.currentUser?.id ?: return
         viewModelScope.launch {
-            _isLoading.value = true
-            val dtos = CommunityRepository.getAllSubmissions(userId)
-            val ids = dtos.map { it.id }
-            val voteCounts = CommunityRepository.getVoteCountsForSubmissions(ids, userId)
-            _submissions.value = dtos.map { dto ->
-                CommunityRepository.toCommunitySubmission(dto, voteCounts[dto.id], userId)
+            val userId = AuthRepository.currentUser?.id
+            if (userId == null) {
+                _isLoading.value = false
+                _submissions.value = emptyList()
+                return@launch
             }
-            _isLoading.value = false
+            _isLoading.value = true
+            try {
+                val dtos = CommunityRepository.getSubmissions()
+                val ids = dtos.map { it.id }
+                val voteCounts = CommunityRepository.getVoteCountsForSubmissions(ids, userId)
+                _submissions.value = dtos.map { dto ->
+                    CommunityRepository.toCommunitySubmission(dto, voteCounts[dto.id], userId)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "refreshSubmissions failed", e)
+                _submissions.value = emptyList()
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 

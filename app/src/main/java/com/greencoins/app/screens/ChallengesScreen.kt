@@ -1,11 +1,8 @@
 package com.greencoins.app.screens
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.LaunchedEffect
-import com.greencoins.app.data.ChallengeRepository
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.greencoins.app.data.Challenge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,6 +26,7 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,7 +39,6 @@ import androidx.compose.ui.unit.sp
 import com.greencoins.app.components.GlassCard
 import com.greencoins.app.components.ImageWithFallback
 import androidx.compose.material3.MaterialTheme
-import com.greencoins.app.theme.AppColors
 import com.greencoins.app.ui.toImageVector
 
 import com.greencoins.app.data.ChallengeDetailData
@@ -49,12 +46,10 @@ import com.greencoins.app.data.ChallengeDetailRepository
 
 @Composable
 fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
-    var challenges by remember { mutableStateOf<List<Challenge>>(emptyList()) }
+    val viewModel: ChallengesViewModel = viewModel()
+    val challenges by viewModel.challenges.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     val colorScheme = MaterialTheme.colorScheme
-
-    LaunchedEffect(Unit) {
-        challenges = ChallengeRepository.getAllChallenges()
-    }
 
     Column(
         modifier = Modifier
@@ -73,6 +68,29 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
             }
         }
         Spacer(modifier = Modifier.height(32.dp))
+
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 48.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+            return@Column
+        }
+
+        if (challenges.isEmpty()) {
+            Text(
+                "No challenges yet",
+                color = colorScheme.onSurfaceVariant,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(vertical = 24.dp),
+            )
+            return@Column
+        }
+
         Text("My Active", color = colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         val activeList = challenges.filter { it.isActive }
