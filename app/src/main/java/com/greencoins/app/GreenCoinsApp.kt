@@ -240,12 +240,13 @@ fun GreenCoinsApp() {
                         onNext = {
                             plusStep = when (plusStep) {
                                 is PlusStep.Brief -> PlusStep.Upload
-                                is PlusStep.Upload -> PlusStep.Success
+                                is PlusStep.Upload -> PlusStep.VerificationLoading
                                 else -> plusStep
                             }
                         },
                         onCancel = { screen = Screen.Home },
                         onMissionSubmitted = { userViewModel.refresh() },
+                        onVerificationComplete = { plusStep = PlusStep.Success },
                     )
                     Screen.Challenges -> ChallengesScreen(
                         onChallengeClick = { data ->

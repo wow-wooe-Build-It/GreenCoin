@@ -97,4 +97,7 @@ dependencies {
 
     // Location Tracking
     implementation("com.google.android.gms:play-services-location:21.2.0")
+
+    // Lottie (mission verification loading)
+    implementation("com.airbnb.android:lottie-compose:6.4.0")
 }

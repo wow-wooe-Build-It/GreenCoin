@@ -1,12 +1,9 @@
 package com.greencoins.app.screens
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.core.content.ContextCompat
 import androidx.exifinterface.media.ExifInterface
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -50,7 +47,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,15 +62,27 @@ import com.greencoins.app.components.GlassCard
 import com.greencoins.app.data.AuthRepository
 import com.greencoins.app.data.Mission
 import com.greencoins.app.data.MissionRepository
-import com.google.android.gms.location.LocationServices
-import java.util.Locale
 import androidx.compose.material3.MaterialTheme
 import com.greencoins.app.theme.AppColors
 import com.greencoins.app.ui.toImageVector
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
-sealed class PlusStep { object Selection : PlusStep(); object Brief : PlusStep(); object Upload : PlusStep(); object Success : PlusStep() }
+/** Proof + metadata captured on the upload step; submission pipeline runs on [VerificationLoadingScreen]. */
+data class MissionSubmissionPending(
+    val mission: Mission,
+    val beforeUri: Uri,
+    val afterUri: Uri,
+    val description: String,
+)
+
+sealed class PlusStep {
+    object Selection : PlusStep()
+    object Brief : PlusStep()
+    object Upload : PlusStep()
+    object VerificationLoading : PlusStep()
+    object Success : PlusStep()
+}
 
 @Composable
 fun PlusFlow(
@@ -84,10 +92,12 @@ fun PlusFlow(
     onNext: () -> Unit,
     onCancel: () -> Unit,
     onMissionSubmitted: () -> Unit = {},
+    onVerificationComplete: () -> Unit = {},
 ) {
     var missions by remember { mutableStateOf<List<Mission>>(emptyList()) }
     var selectedMission by remember { mutableStateOf<Mission?>(null) }
     var finalSubmission by remember { mutableStateOf<com.greencoins.app.data.Submission?>(null) }
+    var pendingSubmission by remember { mutableStateOf<MissionSubmissionPending?>(null) }
     
     // Fetch all missions for selection list
     LaunchedEffect(Unit) {
@@ -113,13 +123,33 @@ fun PlusFlow(
         is PlusStep.Upload -> {
             if (selectedMission != null) {
                 PlusUploadStep(
-                    mission = selectedMission!!, 
-                    onNext = onNext, 
-                    onCancel = onCancel, 
-                    onSubmissionComplete = {
-                        finalSubmission = it
+                    mission = selectedMission!!,
+                    onNavigateToVerificationLoading = { pending ->
+                        pendingSubmission = pending
+                        onNext()
+                    },
+                    onCancel = onCancel,
+                )
+            } else {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            }
+        }
+        is PlusStep.VerificationLoading -> {
+            if (selectedMission != null && pendingSubmission != null) {
+                VerificationLoadingScreen(
+                    mission = selectedMission!!,
+                    pending = pendingSubmission!!,
+                    onSubmissionCreated = { row ->
+                        finalSubmission = row
                         onMissionSubmitted()
-                    }
+                    },
+                    onFinished = { updated ->
+                        finalSubmission = updated
+                        pendingSubmission = null
+                        onMissionSubmitted()
+                        onVerificationComplete()
+                    },
+                    onCancel = onCancel,
                 )
             } else {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -354,122 +384,39 @@ private fun hasValidExifMetadata(context: Context, uri: Uri): Boolean {
 }
 
 @Composable
-private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () -> Unit, onSubmissionComplete: (com.greencoins.app.data.Submission) -> Unit = {}) {
+private fun PlusUploadStep(
+    mission: Mission,
+    onNavigateToVerificationLoading: (MissionSubmissionPending) -> Unit,
+    onCancel: () -> Unit,
+) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     var beforeImageUri by remember { mutableStateOf<Uri?>(null) }
     var afterImageUri by remember { mutableStateOf<Uri?>(null) }
     var description by remember { mutableStateOf("") }
 
     var isConfirmed by remember { mutableStateOf(false) }
-    var isSubmitting by remember { mutableStateOf(false) }
     var pendingImageSlot by remember { mutableStateOf<Boolean?>(null) } // true = before, false = after
 
-    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-
-    val submitMissionData = { lat: Double?, lon: Double?, locName: String? ->
-        scope.launch {
-            try {
-                val userId = AuthRepository.currentUser?.id
-                if (userId != null && beforeImageUri != null && afterImageUri != null) {
-                    val beforeInputStream = context.contentResolver.openInputStream(beforeImageUri!!)
-                    val afterInputStream = context.contentResolver.openInputStream(afterImageUri!!)
-                    if (beforeInputStream != null && afterInputStream != null) {
-                        val beforeBytes = beforeInputStream.use { it.readBytes() }
-                        val afterBytes = afterInputStream.use { it.readBytes() }
-                        try {
-                            val beforeImageUrl = MissionRepository.uploadMissionProof(userId, beforeBytes, "before")
-                            val afterImageUrl = MissionRepository.uploadMissionProof(userId, afterBytes, "after")
-                            val submissionRow = MissionRepository.submitMission(userId, mission.id, beforeImageUrl, afterImageUrl, description, lat, lon, locName)
-                            
-                            if (submissionRow != null) {
-                                // Trigger AI Verification Edge Function fire-and-forget
-                                com.greencoins.app.data.SubmissionVerificationRepository.triggerVerification(
-                                    submissionId = submissionRow.id,
-                                    beforeUrl = beforeImageUrl,
-                                    afterUrl = afterImageUrl,
-                                    mission = mission.title
-                                )
-                                onSubmissionComplete(submissionRow)
-                                onNext()
-                            } else {
-                                android.widget.Toast.makeText(context, "Failed to create submission row", android.widget.Toast.LENGTH_LONG).show()
-                            }
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            android.widget.Toast.makeText(context, "Upload failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
-                        }
-                    } else {
-                        android.widget.Toast.makeText(context, "Could not read image(s)", android.widget.Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    if (userId == null) {
-                        android.widget.Toast.makeText(context, "User not logged in", android.widget.Toast.LENGTH_SHORT).show()
-                    } else {
-                        android.widget.Toast.makeText(context, "Please select both Before and After images", android.widget.Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } catch(e: Exception) {
-                e.printStackTrace()
-                android.widget.Toast.makeText(context, "Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
-            } finally {
-                isSubmitting = false
-            }
-        }
-    }
-
-    fun fetchLocationAndSubmit() {
-        try {
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                if (location != null) {
-                    var locationName: String? = null
-                    try {
-                        val geocoder = Geocoder(context, Locale.getDefault())
-                        val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-                        if (!addresses.isNullOrEmpty()) {
-                            val addr = addresses[0]
-                            locationName = listOfNotNull(addr.subLocality, addr.locality, addr.adminArea).filter { it.isNotBlank() }.joinToString(", ")
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    submitMissionData(location.latitude, location.longitude, locationName)
-                } else {
-                    isSubmitting = false
-                    android.widget.Toast.makeText(context, "Could not acquire GPS location. Please ensure location services are enabled.", android.widget.Toast.LENGTH_LONG).show()
-                }
-            }.addOnFailureListener {
-                isSubmitting = false
-                android.widget.Toast.makeText(context, "Failed to get location: ${it.message}", android.widget.Toast.LENGTH_LONG).show()
-            }
-        } catch (e: SecurityException) {
-            isSubmitting = false
-            android.widget.Toast.makeText(context, "Location permission is required", android.widget.Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || 
-                      permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        if (granted) {
-            fetchLocationAndSubmit()
-        } else {
-            isSubmitting = false
-            android.widget.Toast.makeText(context, "Location permission is strictly required to verify missions.", android.widget.Toast.LENGTH_LONG).show()
-        }
-    }
+    val submitOnce = remember { AtomicBoolean(false) }
 
     val onSubmitClicked = {
-        if (!isSubmitting) {
-            isSubmitting = true
-            val hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-            val hasCoarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-            if (hasFine || hasCoarse) {
-                fetchLocationAndSubmit()
-            } else {
-                permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+        val userId = AuthRepository.currentUser?.id
+        when {
+            userId == null -> android.widget.Toast.makeText(context, "User not logged in", android.widget.Toast.LENGTH_SHORT).show()
+            beforeImageUri == null || afterImageUri == null ->
+                android.widget.Toast.makeText(context, "Please select both Before and After images", android.widget.Toast.LENGTH_SHORT).show()
+            !isConfirmed ->
+                android.widget.Toast.makeText(context, "Please confirm you completed this mission.", android.widget.Toast.LENGTH_SHORT).show()
+            !submitOnce.compareAndSet(false, true) -> { /* already navigating */ }
+            else -> {
+                onNavigateToVerificationLoading(
+                    MissionSubmissionPending(
+                        mission = mission,
+                        beforeUri = beforeImageUri!!,
+                        afterUri = afterImageUri!!,
+                        description = description,
+                    ),
+                )
             }
         }
     }
@@ -506,11 +453,11 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onCancel, enabled = !isSubmitting) {
+            IconButton(onClick = onCancel) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AppColors.textSecondary)
             }
             Text("Proof of Impact", color = MaterialTheme.colorScheme.onBackground, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            IconButton(onClick = onCancel, enabled = !isSubmitting) {
+            IconButton(onClick = onCancel) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = AppColors.textSecondary, modifier = Modifier.size(24.dp).graphicsLayer { rotationZ = 45f })
             }
         }
@@ -530,7 +477,7 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
                     .aspectRatio(1f)
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), RoundedCornerShape(32.dp))
                     .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), RoundedCornerShape(32.dp))
-                    .clickable(enabled = !isSubmitting) {
+                    .clickable {
                         pendingImageSlot = true
                         mediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     },
@@ -559,7 +506,7 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
                     .aspectRatio(1f)
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), RoundedCornerShape(32.dp))
                     .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), RoundedCornerShape(32.dp))
-                    .clickable(enabled = !isSubmitting) {
+                    .clickable {
                         pendingImageSlot = false
                         mediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     },
@@ -602,7 +549,6 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
                 unfocusedIndicatorColor = AppColors.gray333,
             ),
             shape = RoundedCornerShape(24.dp),
-            enabled = !isSubmitting
         )
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -616,7 +562,6 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
             androidx.compose.material3.Checkbox(
                 checked = isConfirmed,
                 onCheckedChange = { isConfirmed = it },
-                enabled = !isSubmitting,
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
@@ -633,13 +578,9 @@ private fun PlusUploadStep(mission: Mission, onNext: () -> Unit, onCancel: () ->
             modifier = Modifier.fillMaxWidth().height(64.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary),
             shape = RoundedCornerShape(24.dp),
-            enabled = !isSubmitting && beforeImageUri != null && afterImageUri != null
+            enabled = beforeImageUri != null && afterImageUri != null && isConfirmed,
         ) {
-            if (isSubmitting) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
-            } else {
-                 Text("Submit for Verification", fontWeight = FontWeight.Bold)
-            }
+            Text("Submit for Verification", fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -649,24 +590,9 @@ private fun PlusSuccessStep(mission: Mission, submission: com.greencoins.app.dat
     var currentSub by remember { mutableStateOf(submission) }
     var showScratchNotification by remember { mutableStateOf(false) }
 
-    // Poll for status changes while verification is pending (or for 15 mins)
+    // Pending UX is handled on VerificationLoadingScreen; result arrives here as verified/rejected (or verified scratch card)
     LaunchedEffect(currentSub.id) {
-        if (currentSub.status == "pending") {
-            repeat(30) {
-                delay(10_000)
-                val refreshed = com.greencoins.app.data.SubmissionVerificationRepository.getSubmissionById(currentSub.id)
-                if (refreshed != null) {
-                    currentSub = refreshed
-                    if (refreshed.status != "pending") {
-                        if (refreshed.status == "verified") {
-                            showScratchNotification = true
-                        }
-                        onMissionSubmitted()
-                        return@LaunchedEffect
-                    }
-                }
-            }
-        } else if (currentSub.status == "verified") {
+        if (currentSub.status == "verified") {
             showScratchNotification = true
         }
     }
