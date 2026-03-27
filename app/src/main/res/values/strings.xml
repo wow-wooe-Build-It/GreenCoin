@@ -2,4 +2,6 @@
 <resources>
     <!-- Main application name string -->
     <string name="app_name">GreenCoins</string>
+    <string name="community_hub_title">Community Hub</string>
+    <string name="community_hub_description">Connect, share and verify eco actions in your community</string>
 </resources>
