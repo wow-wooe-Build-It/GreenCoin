@@ -45,8 +45,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.greencoins.app.R
 import com.greencoins.app.components.GlassCard
 import com.greencoins.app.components.ImageWithFallback
 import com.greencoins.app.data.Challenge
@@ -243,13 +245,13 @@ fun HomeScreen(
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Community Verification",
+                        stringResource(R.string.community_hub_title),
                         color = textColor,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                     )
                     Text(
-                        "Verify eco actions in your area and earn GC",
+                        stringResource(R.string.community_hub_description),
                         color = textSecondaryColor,
                         fontSize = 10.sp,
                     )

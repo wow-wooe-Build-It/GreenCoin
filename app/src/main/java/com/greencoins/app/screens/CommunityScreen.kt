@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +47,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.greencoins.app.R
 import com.greencoins.app.components.GlassCard
 import com.greencoins.app.data.AuthRepository
 import com.greencoins.app.theme.AppColors
@@ -76,13 +78,13 @@ fun CommunityScreen(
             .padding(16.dp),
     ) {
         Text(
-            text = "Community Verification",
+            text = stringResource(R.string.community_hub_title),
             color = textColor,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
         )
         Text(
-            text = "Verify eco actions and earn +5 GC per verification",
+            text = stringResource(R.string.community_hub_description),
             color = textSecondaryColor,
             fontSize = 12.sp,
             modifier = Modifier.padding(top = 4.dp),

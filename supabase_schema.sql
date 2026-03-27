@@ -176,7 +176,7 @@ drop policy if exists "Users can create submissions" on public.submissions;
 create policy "Users can create submissions"
   on public.submissions for insert with check ( auth.uid() = user_id );
 
--- Community Verification: authenticated users can read all submissions for peer review (OR with own-submission policy)
+-- Community Hub: authenticated users can read all submissions for peer review (OR with own-submission policy)
 drop policy if exists "Authenticated users can read submissions for community verification" on public.submissions;
 create policy "Authenticated users can read submissions for community verification"
   on public.submissions for select
@@ -503,7 +503,7 @@ begin
 end;
 $$ language plpgsql security definer;
 
--- Community Verification: verification_requests table
+-- Community Hub: verification_requests table
 create table if not exists public.verification_requests (
   id uuid default gen_random_uuid() primary key,
   submission_id text not null,
@@ -628,7 +628,7 @@ create policy "Users can update their own avatar."
   on storage.objects for update
   using ( bucket_id = 'avatar' and auth.uid()::text = (storage.foldername(name))[1] );
 
--- Storage: verification-images bucket for Community Verification
+-- Storage: verification-images bucket for Community Hub
 insert into storage.buckets (id, name, public) values ('verification-images', 'verification-images', true) on conflict (id) do nothing;
 
 create policy "Verification images are publicly accessible."

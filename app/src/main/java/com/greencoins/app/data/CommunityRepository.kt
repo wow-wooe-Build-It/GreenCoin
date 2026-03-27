@@ -54,7 +54,7 @@ data class VoteCounts(
     val currentUserVote: String?, // "upvote" | "downvote" | null
 )
 
-/** Comment row for Community Verification (merged with display name). */
+/** Comment row for Community Hub (merged with display name). */
 data class CommentDto(
     val id: String,
     val userId: String,
@@ -89,7 +89,7 @@ data class MissionSnippet(
     @SerialName("gc_reward") val gcReward: Int
 )
 
-/** UI model for Community Verification cards - maps from backend submissions. */
+/** UI model for Community Hub cards - maps from backend submissions. */
 data class CommunitySubmission(
     val id: String,
     val title: String,
@@ -127,7 +127,7 @@ object CommunityRepository {
 
     private val client = SupabaseManager.client
 
-    /** Fetches all submissions for Community Verification (newest first), with mission title embed. */
+    /** Fetches all submissions for Community Hub (newest first), with mission title embed. */
     suspend fun getSubmissions(): List<CommunitySubmissionDto> = withContext(Dispatchers.IO) {
         try {
             client.from("submissions")
@@ -293,7 +293,7 @@ object CommunityRepository {
         }
     }
 
-    /** Map DTO to UI model for Community Verification screen. */
+    /** Map DTO to UI model for Community Hub screen. */
     fun toCommunitySubmission(dto: CommunitySubmissionDto): CommunitySubmission =
         toCommunitySubmission(dto, null, null)
 
