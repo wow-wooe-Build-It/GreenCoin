@@ -1,5 +1,6 @@
 package com.greencoins.app.data
 
+import android.util.Log
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
@@ -9,18 +10,25 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-private data class LeaderboardUserRow(
+private data class ParticipationLeaderboardRow(
+    @SerialName("user_id") val userId: String,
+    @SerialName("coins_earned") val coinsEarned: Int,
+)
+
+@Serializable
+private data class UserDisplayRow(
     val id: String,
     @SerialName("full_name") val fullName: String? = null,
     val email: String? = null,
-    @SerialName("total_gc") val totalGc: Int = 0,
 )
 
 object LeaderboardRepository {
+    private const val TAG = "LeaderboardRepository"
+
     private val client = SupabaseManager.client
 
     /**
-     * Fetch leaderboard: top users by total_gc (coins), from the database.
+     * Top participants for this challenge by [challenge_participation.coins_earned] (not global user coins).
      */
     suspend fun getChallengeLeaderboard(
         challengeId: String,
@@ -28,26 +36,36 @@ object LeaderboardRepository {
         limit: Int = 10,
     ): List<LeaderboardEntry> = withContext(Dispatchers.IO) {
         try {
-            val users = client.from("users")
-                .select(columns = Columns.list("id", "full_name", "email", "total_gc")) {
-                    order(column = "total_gc", order = Order.DESCENDING)
+            val rows = client.from("challenge_participation")
+                .select(columns = Columns.list("user_id", "coins_earned")) {
+                    filter { eq("challenge_id", challengeId) }
+                    order(column = "coins_earned", order = Order.DESCENDING)
                     limit(limit.toLong())
                 }
-                .decodeList<LeaderboardUserRow>()
+                .decodeList<ParticipationLeaderboardRow>()
 
-            users.mapIndexed { index, row ->
-                val displayName = row.fullName?.takeIf { it.isNotBlank() }
-                    ?: row.email?.split("@")?.firstOrNull()?.replaceFirstChar { it.uppercase() }
+            if (rows.isEmpty()) return@withContext emptyList()
+
+            val userIds = rows.map { it.userId }.distinct()
+            val users = client.from("users").select(columns = Columns.list("id", "full_name", "email")) {
+                filter { isIn("id", userIds) }
+            }.decodeList<UserDisplayRow>()
+            val nameById = users.associateBy { it.id }
+
+            rows.mapIndexed { index, row ->
+                val u = nameById[row.userId]
+                val displayName = u?.fullName?.takeIf { it.isNotBlank() }
+                    ?: u?.email?.split("@")?.firstOrNull()?.replaceFirstChar { it.uppercaseChar() }
                     ?: "User"
                 LeaderboardEntry(
                     rank = index + 1,
                     username = displayName,
-                    coins = row.totalGc,
-                    isCurrentUser = row.id == currentUserId,
+                    coins = row.coinsEarned,
+                    isCurrentUser = row.userId == currentUserId,
                 )
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "getChallengeLeaderboard failed", e)
             emptyList()
         }
     }

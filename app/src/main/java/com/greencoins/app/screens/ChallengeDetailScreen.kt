@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.greencoins.app.components.GlassCard
 import com.greencoins.app.components.ImageWithFallback
 import com.greencoins.app.data.AuthRepository
+import com.greencoins.app.data.ChallengeProgressRepository
 import com.greencoins.app.data.ChallengeDetailData
 import com.greencoins.app.data.ChallengeDetailRepository
 import com.greencoins.app.data.LeaderboardEntry
@@ -62,11 +63,18 @@ fun ChallengeDetailScreen(
     val colorScheme = MaterialTheme.colorScheme
 
     var baseLeaderboard by remember { mutableStateOf<List<LeaderboardEntry>>(emptyList()) }
-    androidx.compose.runtime.LaunchedEffect(data.id) {
+    var myChallengeCoinsEarned by remember { mutableStateOf(0) }
+    androidx.compose.runtime.LaunchedEffect(data.id, isJoined) {
+        val uid = AuthRepository.currentUser?.id
         baseLeaderboard = LeaderboardRepository.getChallengeLeaderboard(
             challengeId = data.id,
-            currentUserId = AuthRepository.currentUser?.id,
+            currentUserId = uid,
         )
+        myChallengeCoinsEarned = if (uid != null) {
+            ChallengeProgressRepository.getProgress(uid, data.id)?.coinsEarned ?: 0
+        } else {
+            0
+        }
     }
     val userName = remember {
         AuthRepository.currentUser?.userMetadata?.get("full_name")?.toString()?.replace("\"", "")
@@ -82,7 +90,7 @@ fun ChallengeDetailScreen(
                 LeaderboardEntry(
                     rank = baseLeaderboard.size + 1,
                     username = userName,
-                    coins = 0,
+                    coins = myChallengeCoinsEarned,
                     isCurrentUser = true,
                 )
         }

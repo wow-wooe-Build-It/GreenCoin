@@ -1,5 +1,6 @@
 package com.greencoins.app.screens
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -48,8 +49,13 @@ import com.greencoins.app.data.ChallengeDetailRepository
 fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
     val viewModel: ChallengesViewModel = viewModel()
     val challenges by viewModel.challenges.collectAsState()
+    val participationByChallengeId by viewModel.participationByChallengeId.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val colorScheme = MaterialTheme.colorScheme
+
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
 
     Column(
         modifier = Modifier
@@ -102,7 +108,9 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             activeList.take(2).forEach { c ->
-                val progress = 0 // Future: Calculate actual progress
+                val p = participationByChallengeId[c.id]
+                val taskProgress = p?.progress ?: 0
+                val barFraction = (taskProgress.coerceAtMost(100)) / 100f
                 GlassCard(
                     modifier = Modifier.width(300.dp).clickable { onChallengeClick(ChallengeDetailRepository.toDetail(c)) }
                 ) {
@@ -126,6 +134,12 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(c.title, color = colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 Text("${c.endDate?.take(10) ?: "Active"} LEFT", color = MaterialTheme.colorScheme.primary, fontSize = 10.sp)
+                                Text(
+                                    "Coins ${p?.coinsEarned ?: 0} · Streak ${p?.streak ?: 0}",
+                                    color = colorScheme.onSurfaceVariant,
+                                    fontSize = 10.sp,
+                                    modifier = Modifier.padding(top = 4.dp),
+                                )
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
@@ -134,11 +148,11 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
                             horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             Text("PROGRESS", color = colorScheme.onSurfaceVariant, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            Text("$progress%", color = colorScheme.onSurface, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text("$taskProgress tasks", color = colorScheme.onSurface, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         LinearProgressIndicator(
-                            progress = { progress / 100f },
+                            progress = { barFraction },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(6.dp)
@@ -198,6 +212,13 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(c.title, color = colorScheme.onSurface, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        val fp = participationByChallengeId[c.id]
+                        Text(
+                            "Your challenge: ${fp?.coinsEarned ?: 0} coins · ${fp?.progress ?: 0} tasks · streak ${fp?.streak ?: 0}",
+                            color = colorScheme.onSurface.copy(alpha = 0.75f),
+                            fontSize = 11.sp,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
                         Text("0 agents joined", color = colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 12.sp)
                     }
                     androidx.compose.material3.Button(
@@ -242,6 +263,12 @@ fun ChallengesScreen(onChallengeClick: (ChallengeDetailData) -> Unit = {}) {
                     Spacer(modifier = Modifier.size(16.dp))
                     Column {
                         Text(c.title, color = colorScheme.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        val gp = participationByChallengeId[c.id]
+                        Text(
+                            "Your challenge: ${gp?.coinsEarned ?: 0} coins · ${gp?.progress ?: 0} tasks · streak ${gp?.streak ?: 0}",
+                            color = colorScheme.onSurfaceVariant,
+                            fontSize = 10.sp,
+                        )
                         Text("Global • ${c.description?.take(20) ?: ""}", color = colorScheme.onSurfaceVariant, fontSize = 10.sp)
                     }
                 }

@@ -55,6 +55,7 @@ object MissionRepository {
         locationName: String? = null
     ): Submission? = withContext(Dispatchers.IO) {
         try {
+            val mission = getMission(missionId)
             val submissionJson = buildJsonObject {
                 put("user_id", userId)
                 put("mission_id", missionId)
@@ -66,11 +67,17 @@ object MissionRepository {
                 put("longitude", longitude)
                 put("location_name", locationName)
                 put("status", "pending")
+                mission?.challengeId?.let { put("challenge_id", it) }
             }
             
-            client.from("submissions").insert(submissionJson) {
+            val submission = client.from("submissions").insert(submissionJson) {
                 select()
             }.decodeSingle<Submission>()
+            val cid = mission?.challengeId
+            if (cid != null) {
+                ChallengeProgressRepository.updateProgress(userId, cid, mission.gcReward)
+            }
+            submission
         } catch (e: Exception) {
             e.printStackTrace()
             null

@@ -37,6 +37,7 @@ object UserChallengesRepository {
                 put("challenge_score", 0)
             }
             client.from("user_challenges").insert(json)
+            ChallengeProgressRepository.joinChallenge(userId, challengeId)
             true
         } catch (e: Exception) {
             e.printStackTrace()

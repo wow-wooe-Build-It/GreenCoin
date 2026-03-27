@@ -144,7 +144,13 @@ data class ChallengeDetailData(
     val instructions: List<String>,
 )
 
-/** Leaderboard entry for challenge detail. */
+/** Per-challenge leaderboard source row (challenge_participation). */
+data class LeaderboardUser(
+    val userId: String,
+    val coinsEarned: Int,
+)
+
+/** Leaderboard entry for challenge detail ([LeaderboardEntry.coins] = challenge-only coins_earned). */
 data class LeaderboardEntry(
     val rank: Int,
     val username: String,

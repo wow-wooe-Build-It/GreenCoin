@@ -137,6 +137,43 @@ drop policy if exists "Users can insert own challenge joins" on public.user_chal
 create policy "Users can insert own challenge joins"
   on public.user_challenges for insert with check ( auth.uid() = user_id );
 
+-- Per-challenge participation (coins, progress, streak — separate from global user coins)
+create table if not exists public.challenge_participation (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid not null references public.users(id) on delete cascade,
+  challenge_id uuid not null references public.challenges(id) on delete cascade,
+  coins_earned int not null default 0,
+  progress int not null default 0,
+  streak int not null default 0,
+  last_active_date date,
+  joined_at timestamptz default now(),
+  unique (user_id, challenge_id)
+);
+
+alter table public.challenge_participation enable row level security;
+
+drop policy if exists "Users can read own challenge participation" on public.challenge_participation;
+create policy "Users can read own challenge participation"
+  on public.challenge_participation for select
+  using ( auth.uid() = user_id );
+
+drop policy if exists "Users can insert own challenge participation" on public.challenge_participation;
+create policy "Users can insert own challenge participation"
+  on public.challenge_participation for insert
+  with check ( auth.uid() = user_id );
+
+drop policy if exists "Users can update own challenge participation" on public.challenge_participation;
+create policy "Users can update own challenge participation"
+  on public.challenge_participation for update
+  using ( auth.uid() = user_id );
+
+-- Leaderboard: allow reading all participation rows for a challenge (OR with own-row policy)
+drop policy if exists "Authenticated users can read challenge participation for leaderboard" on public.challenge_participation;
+create policy "Authenticated users can read challenge participation for leaderboard"
+  on public.challenge_participation for select
+  to authenticated
+  using ( true );
+
 
 -- 5. SUBMISSIONS TABLE
 create table if not exists public.submissions (
