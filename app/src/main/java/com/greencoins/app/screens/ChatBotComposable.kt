@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -42,11 +43,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.MaterialTheme
-import com.greencoins.app.theme.AppColors
+import com.mikepenz.markdown.m3.Markdown
+import com.mikepenz.markdown.m3.markdownColor
+import com.mikepenz.markdown.m3.markdownTypography
 
 @Composable
 fun ChatBotSheet(
@@ -93,7 +97,7 @@ fun ChatBotSheet(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     state = listState,
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     items(messages) { msg ->
                         ChatBubble(message = msg)
@@ -205,17 +209,48 @@ private fun ChatBubble(message: ChatMessage) {
         Box(
             modifier = Modifier
                 .padding(horizontal = 8.dp)
+                .widthIn(max = 340.dp)
                 .background(
                     if (message.isUser) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surfaceContainer,
                     RoundedCornerShape(20.dp),
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
-            Text(
-                text = message.text,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 14.sp,
-            )
+            ChatBubbleMarkdown(text = message.text)
         }
     }
+}
+
+@Composable
+private fun ChatBubbleMarkdown(text: String) {
+    val scheme = MaterialTheme.colorScheme
+    val body = MaterialTheme.typography.bodyMedium.copy(
+        fontSize = 14.sp,
+        lineHeight = 22.sp,
+        color = scheme.onSurface,
+        letterSpacing = 0.15.sp,
+    )
+    Markdown(
+        content = text,
+        modifier = Modifier.fillMaxWidth(),
+        colors = markdownColor(text = scheme.onSurface),
+        typography = markdownTypography(
+            h1 = body.copy(fontWeight = FontWeight.Bold, fontSize = 16.sp, lineHeight = 22.sp),
+            h2 = body.copy(fontWeight = FontWeight.Bold, fontSize = 15.sp, lineHeight = 21.sp),
+            h3 = body.copy(fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 20.sp),
+            h4 = body.copy(fontWeight = FontWeight.SemiBold),
+            h5 = body.copy(fontWeight = FontWeight.Medium),
+            h6 = body.copy(fontWeight = FontWeight.Medium),
+            text = body,
+            paragraph = body,
+            ordered = body,
+            bullet = body,
+            list = body,
+            link = body.copy(
+                color = scheme.primary,
+                fontWeight = FontWeight.SemiBold,
+                textDecoration = TextDecoration.None,
+            ),
+        ),
+    )
 }
